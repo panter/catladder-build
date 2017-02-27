@@ -6,7 +6,7 @@ var _defineProperty = require('babel-runtime/helpers/define-property')['default'
 
 var _objectWithoutProperties = require('babel-runtime/helpers/object-without-properties')['default'];
 
-var _toArray = require('babel-runtime/helpers/to-array')['default'];
+var _slicedToArray = require('babel-runtime/helpers/sliced-to-array')['default'];
 
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
 
@@ -194,7 +194,7 @@ var getSshConfig = function getSshConfig(environment) {
 };
 
 var actions = {
-  init: function init(args, done) {
+  init: function init(__, done) {
     var configOld = _fs2['default'].existsSync(CONFIGFILE) && readConfig() || {};
     _prompt2['default'].start();
     _prompt2['default'].get(initSchema(configOld), function (error, configNew) {
@@ -247,42 +247,42 @@ var actions = {
       });
     });
   },
-  restart: function restart(environments, done) {
-    environments.forEach(function (environment) {
-      actionTitle('restarting ' + environment);
-      (0, _sshExec2['default'])('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
-    });
+  restart: function restart(environment, done) {
+    actionTitle('restarting ' + environment);
+    (0, _sshExec2['default'])('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
   },
-  build: function build(environments, done) {
+  build: function build(environment, done) {
     var config = readConfig();
-    environments.forEach(function (environment) {
-      var envConf = config.environments[environment];
-      var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
-      actionTitle('building ' + environment);
-      console.log('build dir: ' + buildDir);
-      (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
-      (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: [0, 1, 2] });
-      done();
-    });
+
+    var envConf = config.environments[environment];
+    var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
+    actionTitle('building ' + environment);
+    console.log('build dir: ' + buildDir);
+    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+    (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: [0, 1, 2] });
+    done();
   },
-  deploy: function deploy(environments, done) {
+  deploy: function deploy(environment, done) {
     var config = readConfig();
-    environments.forEach(function (environment) {
-      // const envConf = config.environments[environment];
-      var sshConfig = getSshConfig(environment);
-      actionTitle('deploying ' + environment);
-      (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host, { stdio: [0, 1, 2] });
-      (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, done).pipe(process.stdout);
+
+    // const envConf = config.environments[environment];
+    var sshConfig = getSshConfig(environment);
+    actionTitle('deploying ' + environment);
+    (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: [0, 1, 2] });
+    (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, done).pipe(process.stdout);
+  },
+  'build-deploy': function buildDeploy(environment, done) {
+    actions.build(environment, function () {
+      actions.deploy(environment, done);
     });
   }
 
 };
 
-var _options$_ = _toArray(options._);
+var _options$_ = _slicedToArray(options._, 2);
 
 var command = _options$_[0];
-
-var args = _options$_.slice(1);
+var environment = _options$_[1];
 
 intro('');
 intro('                                🐱 🔧');
@@ -301,6 +301,11 @@ var done = function done() {
   intro('  ╚══════════════════════════════════');
 };
 if (actions[command]) {
-  actions[command](args, done);
+  actions[command](environment, done);
+} else {
+  console.log('available commands: ');
+  console.log('');
+  console.log(_lodash2['default'].keys(actions).join('\n'));
+  done();
 }
 //# sourceMappingURL=index.js.map

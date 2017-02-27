@@ -137,7 +137,7 @@ const getSshConfig = (environment) => {
 };
 
 const actions = {
-  init(args, done) {
+  init(__, done) {
     const configOld = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
     prompt.start();
     prompt.get(initSchema(configOld), (error,
@@ -202,35 +202,32 @@ const actions = {
       });
     });
   },
-  restart(environments, done) {
-    environments.forEach((environment) => {
-      actionTitle(`restarting ${environment}`);
-      remoteExec('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
-    });
+  restart(environment, done) {
+    actionTitle(`restarting ${environment}`);
+    remoteExec('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
   },
-  build(environments, done) {
+  build(environment, done) {
     const config = readConfig();
-    environments.forEach((environment) => {
-      const envConf = config.environments[environment];
-      const buildDir = path.resolve(`${config.buildDir}/${environment}`);
-      actionTitle(`building ${environment}`);
-      console.log(`build dir: ${buildDir}`);
-      execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
-      execSync(
+
+    const envConf = config.environments[environment];
+    const buildDir = path.resolve(`${config.buildDir}/${environment}`);
+    actionTitle(`building ${environment}`);
+    console.log(`build dir: ${buildDir}`);
+    execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+    execSync(
         `meteor build --server ${envConf.url} ${buildDir}`,
         { cwd: config.appDir, stdio: [0, 1, 2] },
       );
-      done();
-    });
+    done();
   },
-  deploy(environments, done) {
+  deploy(environment, done) {
     const config = readConfig();
-    environments.forEach((environment) => {
+
       // const envConf = config.environments[environment];
-      const sshConfig = getSshConfig(environment);
-      actionTitle(`deploying ${environment}`);
-      execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}`, { stdio: [0, 1, 2] });
-      remoteExec(`
+    const sshConfig = getSshConfig(environment);
+    actionTitle(`deploying ${environment}`);
+    execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: [0, 1, 2] });
+    remoteExec(`
         rm -rf ~/app/last
         mv ~/app/bundle ~/app/last
         tar xfz app.tar.gz -C app
@@ -238,12 +235,16 @@ const actions = {
         npm install
         popd
       `, sshConfig, done).pipe(process.stdout);
+  },
+  'build-deploy': function (environment, done) {
+    actions.build(environment, () => {
+      actions.deploy(environment, done);
     });
   },
 
 
 };
-const [command, ...args] = options._;
+const [command, environment] = options._;
 
 intro('');
 intro('                                🐱 🔧');
@@ -262,5 +263,10 @@ const done = () => {
   intro('  ╚══════════════════════════════════');
 };
 if (actions[command]) {
-  actions[command](args, done);
+  actions[command](environment, done);
+} else {
+  console.log('available commands: ');
+  console.log('');
+  console.log(_.keys(actions).join('\n'));
+  done();
 }

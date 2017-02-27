@@ -38,9 +38,22 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
 var _child_process = require('child_process');
 
 var _packageJson = require('../package.json');
+
+var intro = function intro(line) {
+  return console.log(_colorsSafe2['default'].yellow(line));
+};
+var actionTitle = function actionTitle(title) {
+  intro('');
+  intro('🐱 🔧 ' + title);
+  intro('');
+};
 
 var CONFIGFILE = '.catladder.yaml';
 var options = (0, _minimist2['default'])(process.argv.slice(2));
@@ -51,9 +64,9 @@ var writeConfig = function writeConfig(config) {
 var readConfig = function readConfig() {
   return _jsYaml2['default'].safeLoad(_fs2['default'].readFileSync(CONFIGFILE));
 };
-var readPass = function readPass(path) {
+var readPass = function readPass(passPath) {
   try {
-    return (0, _child_process.execSync)('pass show ' + path, { stdio: [0], encoding: 'utf-8' });
+    return (0, _child_process.execSync)('pass show ' + passPath, { stdio: [0], encoding: 'utf-8' });
   } catch (error) {
     if (error.message.indexOf('is not in the password store') !== -1) {
       return null;
@@ -62,13 +75,13 @@ var readPass = function readPass(path) {
   }
 };
 
-var writePass = function writePass(path, input) {
-  console.log('writing to pass', path);
-  (0, _child_process.execSync)('pass insert ' + path + ' -m', { input: input });
+var writePass = function writePass(passPath, input) {
+  console.log('writing to pass', passPath);
+  (0, _child_process.execSync)('pass insert ' + _path2['default'] + ' -m', { input: input });
 };
 
-var editPass = function editPass(path) {
-  (0, _child_process.spawnSync)('pass', ['edit', path], {
+var editPass = function editPass(passPath) {
+  (0, _child_process.spawnSync)('pass', ['edit', passPath], {
     stdio: 'inherit'
   });
 };
@@ -106,6 +119,16 @@ var initSchema = function initSchema(config) {
         'default': function _default() {
           return _prompt2['default'].history('customer').value + '/' + _prompt2['default'].history('appname').value;
         }
+      },
+      appDir: {
+        description: 'app directory',
+        type: 'string',
+        'default': './app'
+      },
+      buildDir: {
+        description: 'build directory',
+        type: 'string',
+        'default': './build'
       }
     }
   }, config);
@@ -172,19 +195,15 @@ var getSshConfig = function getSshConfig(environment) {
 
 var actions = {
   init: function init(args, done) {
-    var config = _fs2['default'].existsSync(CONFIGFILE) && readConfig() || {};
+    var configOld = _fs2['default'].existsSync(CONFIGFILE) && readConfig() || {};
     _prompt2['default'].start();
-    _prompt2['default'].get(initSchema(config), function (error, _ref3) {
-      var customer = _ref3.customer;
-      var appname = _ref3.appname;
-      var passPath = _ref3.passPath;
-
-      var configFile = _extends({}, config, {
-        appname: appname,
-        customer: customer,
-        passPath: passPath
-      });
-      writeConfig(configFile);
+    _prompt2['default'].get(initSchema(configOld), function (error, configNew) {
+      var config = _extends({}, configOld, configNew);
+      writeConfig(config);
+      var buildDir = _path2['default'].resolve(config.buildDir);
+      if (!_fs2['default'].existsSync(buildDir)) {
+        _fs2['default'].mkdirSync(buildDir);
+      }
       console.log('created ' + CONFIGFILE);
       done();
     });
@@ -193,9 +212,7 @@ var actions = {
     var config = readConfig();
     _prompt2['default'].start();
     environments.forEach(function (environment) {
-      console.log('');
-      console.log('🐱 🔧 Setting up ' + environment);
-      console.log('');
+      actionTitle('setting up ' + environment);
       var passPathForEnvVars = config.passPath + '/' + environment + '.yaml';
       // console.log(passPathForEnvVars);
       _prompt2['default'].get(environmentSchema(_extends({}, config, { environment: environment })), function (error, envConfig) {
@@ -232,8 +249,30 @@ var actions = {
   },
   restart: function restart(environments, done) {
     environments.forEach(function (environment) {
-      console.log('restarting ' + environment);
+      actionTitle('restarting ' + environment);
       (0, _sshExec2['default'])('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
+    });
+  },
+  build: function build(environments, done) {
+    var config = readConfig();
+    environments.forEach(function (environment) {
+      var envConf = config.environments[environment];
+      var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
+      actionTitle('building ' + environment);
+      console.log('build dir: ' + buildDir);
+      (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+      (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: [0, 1, 2] });
+      done();
+    });
+  },
+  deploy: function deploy(environments, done) {
+    var config = readConfig();
+    environments.forEach(function (environment) {
+      // const envConf = config.environments[environment];
+      var sshConfig = getSshConfig(environment);
+      actionTitle('deploying ' + environment);
+      (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host, { stdio: [0, 1, 2] });
+      (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, done).pipe(process.stdout);
     });
   }
 
@@ -245,9 +284,6 @@ var command = _options$_[0];
 
 var args = _options$_.slice(1);
 
-var intro = function intro(line) {
-  return console.log(_colorsSafe2['default'].yellow(line));
-};
 intro('');
 intro('                                🐱 🔧');
 intro('         ╔═══ PANTER CATLADDER ═════');

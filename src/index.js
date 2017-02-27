@@ -5,9 +5,17 @@ import remoteExec from 'ssh-exec';
 import _ from 'lodash';
 import yaml from 'js-yaml';
 import fs from 'fs';
+import path from 'path';
 import { execSync, spawnSync } from 'child_process';
 
 import { version } from '../package.json';
+
+const intro = line => console.log(colors.yellow(line));
+const actionTitle = (title) => {
+  intro('');
+  intro(`🐱 🔧 ${title}`);
+  intro('');
+};
 
 const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
@@ -16,9 +24,9 @@ const writeConfig = (config) => {
   fs.writeFileSync(CONFIGFILE, theyaml);
 };
 const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
-const readPass = (path) => {
+const readPass = (passPath) => {
   try {
-    return execSync(`pass show ${path}`, { stdio: [0], encoding: 'utf-8' });
+    return execSync(`pass show ${passPath}`, { stdio: [0], encoding: 'utf-8' });
   } catch (error) {
     if (error.message.indexOf('is not in the password store') !== -1) {
       return null;
@@ -27,13 +35,13 @@ const readPass = (path) => {
   }
 };
 
-const writePass = (path, input) => {
-  console.log('writing to pass', path);
+const writePass = (passPath, input) => {
+  console.log('writing to pass', passPath);
   execSync(`pass insert ${path} -m`, { input });
 };
 
-const editPass = (path) => {
-  spawnSync('pass', ['edit', path], {
+const editPass = (passPath) => {
+  spawnSync('pass', ['edit', passPath], {
     stdio: 'inherit',
   });
 };
@@ -63,6 +71,16 @@ const initSchema = config => withDefaults({
       description: 'Path in pass',
       required: true,
       default: () => `${prompt.history('customer').value}/${prompt.history('appname').value}`,
+    },
+    appDir: {
+      description: 'app directory',
+      type: 'string',
+      default: './app',
+    },
+    buildDir: {
+      description: 'build directory',
+      type: 'string',
+      default: './build',
     },
   },
 }, config);
@@ -120,18 +138,20 @@ const getSshConfig = (environment) => {
 
 const actions = {
   init(args, done) {
-    const config = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
+    const configOld = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
     prompt.start();
-    prompt.get(initSchema(config), (error,
-      { customer, appname, passPath },
+    prompt.get(initSchema(configOld), (error,
+      configNew,
     ) => {
-      const configFile = {
-        ...config,
-        appname,
-        customer,
-        passPath,
+      const config = {
+        ...configOld,
+        ...configNew,
       };
-      writeConfig(configFile);
+      writeConfig(config);
+      const buildDir = path.resolve(config.buildDir);
+      if (!fs.existsSync(buildDir)) {
+        fs.mkdirSync(buildDir);
+      }
       console.log(`created ${CONFIGFILE}`);
       done();
     });
@@ -140,9 +160,7 @@ const actions = {
     const config = readConfig();
     prompt.start();
     environments.forEach((environment) => {
-      console.log('');
-      console.log(`🐱 🔧 Setting up ${environment}`);
-      console.log('');
+      actionTitle(`setting up ${environment}`);
       const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
       // console.log(passPathForEnvVars);
       prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
@@ -186,15 +204,47 @@ const actions = {
   },
   restart(environments, done) {
     environments.forEach((environment) => {
-      console.log(`restarting ${environment}`);
+      actionTitle(`restarting ${environment}`);
       remoteExec('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
+    });
+  },
+  build(environments, done) {
+    const config = readConfig();
+    environments.forEach((environment) => {
+      const envConf = config.environments[environment];
+      const buildDir = path.resolve(`${config.buildDir}/${environment}`);
+      actionTitle(`building ${environment}`);
+      console.log(`build dir: ${buildDir}`);
+      execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+      execSync(
+        `meteor build --server ${envConf.url} ${buildDir}`,
+        { cwd: config.appDir, stdio: [0, 1, 2] },
+      );
+      done();
+    });
+  },
+  deploy(environments, done) {
+    const config = readConfig();
+    environments.forEach((environment) => {
+      // const envConf = config.environments[environment];
+      const sshConfig = getSshConfig(environment);
+      actionTitle(`deploying ${environment}`);
+      execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}`, { stdio: [0, 1, 2] });
+      remoteExec(`
+        rm -rf ~/app/last
+        mv ~/app/bundle ~/app/last
+        tar xfz app.tar.gz -C app
+        pushd ~/app/bundle/programs/server
+        npm install
+        popd
+      `, sshConfig, done).pipe(process.stdout);
     });
   },
 
 
 };
 const [command, ...args] = options._;
-const intro = line => console.log(colors.yellow(line));
+
 intro('');
 intro('                                🐱 🔧');
 intro('         ╔═══ PANTER CATLADDER ═════');

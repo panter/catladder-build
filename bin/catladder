@@ -1,4 +1,4 @@
 #!/usr/bin/env node
 
-require('../dist/index');
+require('../dist/catladder');
 require('../dist/update_notifier');

@@ -1,5 +1,6 @@
 import minimist from 'minimist';
 import prompt from 'prompt';
+import colors from 'colors/safe';
 import remoteExec from 'ssh-exec';
 import _ from 'lodash';
 import yaml from 'js-yaml';
@@ -10,11 +11,10 @@ import { version } from '../package.json';
 
 const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
-const writeConfig = config => fs.writeFile(CONFIGFILE, yaml.safeDump(config), (err) => {
-  if (err) {
-    return console.log(err);
-  }
-});
+const writeConfig = (config) => {
+  const theyaml = yaml.safeDump(config);
+  fs.writeFileSync(CONFIGFILE, theyaml);
+};
 const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
 const readPass = (path) => {
   try {
@@ -37,7 +37,16 @@ const editPass = (path) => {
     stdio: 'inherit',
   });
 };
-const initSchema = {
+
+const withDefaults = (schema, defaults = {}) => ({
+  ...schema,
+  properties: _.mapValues(schema.properties, (value, key) => ({
+    ...value,
+    default: () => defaults[key] || _.result(value, 'default'),
+  })),
+});
+
+const initSchema = config => withDefaults({
   properties: {
     customer: {
       description: 'Customer kürzel',
@@ -55,19 +64,10 @@ const initSchema = {
       required: true,
       default: () => `${prompt.history('customer').value}/${prompt.history('appname').value}`,
     },
-    environments: {
-      description: 'environments',
-      type: 'string',
-      required: true,
-      pattern: /^[a-z,\s]+$/,
-      default: 'staging, production',
-      before: v => v.split(',').map(_.trim),
-    },
   },
-};
+}, config);
 
-
-const environmentSchema = ({ environment, appname }) => ({
+const environmentSchema = ({ environment, appname, ...config }) => withDefaults({
   properties: {
     host: {
       description: 'ssh host',
@@ -84,7 +84,7 @@ const environmentSchema = ({ environment, appname }) => ({
       default: () => `https://${prompt.history('host').value}`,
     },
   },
-});
+}, config[environment]);
 
 const defaultEnv = ({ config, envConfig }) => ({
   PORT: 8080,
@@ -96,13 +96,6 @@ const defaultEnv = ({ config, envConfig }) => ({
   },
 });
 
-const withDefaults = (schema, defaults = {}) => ({
-  ...schema,
-  properties: _.mapValues(schema.properties, (value, key) => ({
-    ...value,
-    default: () => defaults[key] || _.result(value, 'default'),
-  })),
-});
 
 const createEnvSh = (envVars) => {
   const getSanitziedValue = (value) => {
@@ -117,73 +110,107 @@ const createEnvSh = (envVars) => {
   }).join('\n');
 };
 
+const getSshConfig = (environment) => {
+  const config = readConfig();
+  return _.pick(
+    config.environments[environment],
+    ['host', 'user', 'password', 'key'],
+  );
+};
+
 const actions = {
-  init() {
+  init(args, done) {
     const config = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
     prompt.start();
-    prompt.get(withDefaults(initSchema, config), (error,
-      { customer, appname, passPath, environments },
+    prompt.get(initSchema(config), (error,
+      { customer, appname, passPath },
     ) => {
       const configFile = {
+        ...config,
         appname,
         customer,
         passPath,
-        environments: _.chain(environments).keyBy().mapValues(() => ({})).value(),
       };
       writeConfig(configFile);
       console.log(`created ${CONFIGFILE}`);
+      done();
     });
   },
-  setup(environments) {
+  setup(environments, done) {
     const config = readConfig();
     prompt.start();
     environments.forEach((environment) => {
-      console.log('setting up', environment);
+      console.log('');
+      console.log(`🐱 🔧 Setting up ${environment}`);
+      console.log('');
       const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
       // console.log(passPathForEnvVars);
       prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
-        // write envConfig
+        // write new envConfig
+        config.environments = {
+          ...config.environments,
+          [environment]: envConfig,
+        };
+
         writeConfig({
           ...config,
-          [environment]: envConfig,
+          environments: {
+            ...config.environments,
+            [environment]: envConfig,
+          },
         });
+        // update env-vars in path
+        // first get current vars in path
         let envVars = yaml.safeLoad(readPass(passPathForEnvVars));
-
+        // if envVars do not exist yet, create new one and write to pass
         if (_.isEmpty(envVars)) {
           envVars = defaultEnv({ config, envConfig });
           writePass(passPathForEnvVars, yaml.safeDump(envVars));
         }
-
+        // open editor to edit the en vars
         editPass(passPathForEnvVars);
+        // load changed envVars and create env.sh on server
         const envSh = createEnvSh(yaml.safeLoad(readPass(passPathForEnvVars)));
         // create env.sh on server
-        const sshConf = _.pick(envConfig, ['host', 'user', 'password', 'key']);
-        remoteExec(`echo "${envSh}" > ~/app/env.sh`, sshConf);
-        console.log('~/app/env.sh has ben written on ', envConfig.host);
-        console.log('you need to restart the server');
+        remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(environment), (err) => {
+          if (err) {
+            throw err;
+          }
+          console.log('');
+          console.log('~/app/env.sh has ben written on ', envConfig.host);
+          console.log('you need to restart the server');
+          done();
+        }).pipe(process.stdout);
       });
     });
   },
-  restart(environments) {
-    const config = readConfig();
+  restart(environments, done) {
     environments.forEach((environment) => {
-      console.log(config, environment);
-      remoteExec('');
+      console.log(`restarting ${environment}`);
+      remoteExec('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
     });
   },
 
 
 };
 const [command, ...args] = options._;
-console.log('');
-console.log('                                🐱 🔧');
-console.log('         ╔═══ PANTER CATLADDER ═════');
-console.log('       ╔═╝');
-console.log(`     ╔═╝          v${version}`);
-console.log('   ╔═╝');
-console.log(' ╔═╝');
-console.log('═╝');
-console.log('');
+const intro = line => console.log(colors.yellow(line));
+intro('');
+intro('                                🐱 🔧');
+intro('         ╔═══ PANTER CATLADDER ═════');
+intro('       ╔═╝');
+intro(`     ╔═╝          v${version}`);
+intro('   ╔═╝');
+intro(' ╔═╝');
+intro('═╝');
+intro('');
+
+const done = () => {
+  intro('');
+  intro('╗');
+  intro('╚═╗                      👋 🐱');
+  intro('  ╚══════════════════════════════════');
+};
 if (actions[command]) {
-  actions[command](args);
+  actions[command](args, done);
 }

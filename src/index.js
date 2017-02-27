@@ -1,21 +1,24 @@
 import minimist from 'minimist';
 import prompt from 'prompt';
-// import remoteExec from 'ssh-exec';
+import remoteExec from 'ssh-exec';
 import _ from 'lodash';
 import yaml from 'js-yaml';
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { execSync, spawnSync } from 'child_process';
 
+import { version } from '../package.json';
+
+const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
-const writeConfig = config => fs.writeFile('.catladder.yaml', yaml.safeDump(config), (err) => {
+const writeConfig = config => fs.writeFile(CONFIGFILE, yaml.safeDump(config), (err) => {
   if (err) {
     return console.log(err);
   }
 });
-const readConfig = () => yaml.safeLoad(fs.readFileSync('.catladder.yaml'));
+const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
 const readPass = (path) => {
   try {
-    return execSync(`pass show ${path}`, { stdio: [0] });
+    return execSync(`pass show ${path}`, { stdio: [0], encoding: 'utf-8' });
   } catch (error) {
     if (error.message.indexOf('is not in the password store') !== -1) {
       return null;
@@ -24,7 +27,16 @@ const readPass = (path) => {
   }
 };
 
-const writePass = (path, content) => execSync(`pass insert ${path}`, { stdin: content });
+const writePass = (path, input) => {
+  console.log('writing to pass', path);
+  execSync(`pass insert ${path} -m`, { input });
+};
+
+const editPass = (path) => {
+  spawnSync('pass', ['edit', path], {
+    stdio: 'inherit',
+  });
+};
 const initSchema = {
   properties: {
     customer: {
@@ -57,46 +69,30 @@ const initSchema = {
 
 const environmentSchema = ({ environment, appname }) => ({
   properties: {
-    sshHost: {
+    host: {
       description: 'ssh host',
       type: 'string',
       required: true,
       default: `${appname}-${environment}.panter.biz`,
     },
-    sshUsername: {
+    user: {
       description: 'ssh user',
       default: 'app',
     },
     url: {
       description: 'full url',
-      default: () => `https://${prompt.history('sshHost').value}`,
+      default: () => `https://${prompt.history('host').value}`,
     },
   },
 });
 
-const envVarsSchema = ({ config, envConfig }) => ({
-  properties: {
-    PORT: {
-      required: true,
-      pattern: /^[0-9]+$/,
-      default: 8080,
-    },
-    MONGO_URL: {
-      required: true,
-      default: `mongodb://localhost/${config.appname}`,
-    },
-    MONGO_OPLOG_URL: {
-      required: true,
-      default: 'mongodb://localhost/local',
-    },
-    MAIL_URL: {
-      required: true,
-      default: 'smtp://localhost:25',
-    },
-    ROOT_URL: {
-      required: true,
-      default: envConfig.url,
-    },
+const defaultEnv = ({ config, envConfig }) => ({
+  PORT: 8080,
+  MONGO_URL: `mongodb://localhost/${config.appname}`,
+  MONGO_OPLOG_URL: 'mongodb://localhost/local',
+  MAIL_URL: 'smtp://localhost:25',
+  ROOT_URL: envConfig.url,
+  METEOR_SETTINGS: {
   },
 });
 
@@ -108,56 +104,86 @@ const withDefaults = (schema, defaults = {}) => ({
   })),
 });
 
+const createEnvSh = (envVars) => {
+  const getSanitziedValue = (value) => {
+    if (_.isObject(value)) {
+      return JSON.stringify(value);
+    }
+    return value;
+  };
+  return _.keys(envVars).map((key) => {
+    const value = getSanitziedValue(envVars[key]);
+    return `export ${key}='${value}'`;
+  }).join('\n');
+};
+
 const actions = {
   init() {
+    const config = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
     prompt.start();
-    prompt.get(initSchema, (error, { customer, appname, passPath, environments }) => {
+    prompt.get(withDefaults(initSchema, config), (error,
+      { customer, appname, passPath, environments },
+    ) => {
       const configFile = {
         appname,
         customer,
         passPath,
         environments: _.chain(environments).keyBy().mapValues(() => ({})).value(),
       };
-      console.log('writing');
-      console.log(writeConfig(configFile));
+      writeConfig(configFile);
+      console.log(`created ${CONFIGFILE}`);
     });
   },
   setup(environments) {
     const config = readConfig();
-    console.log(environments);
     prompt.start();
     environments.forEach((environment) => {
-      const passPathForEnvVars = `${config.passPath}/${environment}`;
+      console.log('setting up', environment);
+      const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
       // console.log(passPathForEnvVars);
-
-      const envVarsOld = readPass(passPathForEnvVars) || {};
-
-
       prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
-        //
-
-        prompt.get(withDefaults(envVarsSchema({ config, envConfig, environment }), envVarsOld),
-        (varsError, envVars) => {
-          if (varsError) {
-            throw varsError;
-          }
-          writePass(passPathForEnvVars, envVars);
-          // create env object, should be flat key value
-          const envVarsSanitized = _.mapValues(envVars, (envVar) => {
-            if (_.isObject(envVar)) {
-              return JSON.stringify(envVar);
-            }
-            return envVar;
-          });
-
-          console.log(envVarsSanitized);
+        // write envConfig
+        writeConfig({
+          ...config,
+          [environment]: envConfig,
         });
+        let envVars = yaml.safeLoad(readPass(passPathForEnvVars));
+
+        if (_.isEmpty(envVars)) {
+          envVars = defaultEnv({ config, envConfig });
+          writePass(passPathForEnvVars, yaml.safeDump(envVars));
+        }
+
+        editPass(passPathForEnvVars);
+        const envSh = createEnvSh(yaml.safeLoad(readPass(passPathForEnvVars)));
+        // create env.sh on server
+        const sshConf = _.pick(envConfig, ['host', 'user', 'password', 'key']);
+        remoteExec(`echo "${envSh}" > ~/app/env.sh`, sshConf);
+        console.log('~/app/env.sh has ben written on ', envConfig.host);
+        console.log('you need to restart the server');
       });
     });
   },
+  restart(environments) {
+    const config = readConfig();
+    environments.forEach((environment) => {
+      console.log(config, environment);
+      remoteExec('');
+    });
+  },
+
 
 };
-const [command, ...environments] = options._;
+const [command, ...args] = options._;
+console.log('');
+console.log('                                🐱 🔧');
+console.log('         ╔═══ PANTER CATLADDER ═════');
+console.log('       ╔═╝');
+console.log(`     ╔═╝          v${version}`);
+console.log('   ╔═╝');
+console.log(' ╔═╝');
+console.log('═╝');
+console.log('');
 if (actions[command]) {
-  actions[command](environments);
+  actions[command](args);
 }

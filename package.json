@@ -1,7 +1,7 @@
 {
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",
@@ -31,7 +31,7 @@
     "compile:watch": "watch 'npm run compile' src",
     "lint": "eslint src/**.js"
   },
-  "main": "./dist/index.js",
+  "main": "./dist/catladder.js",
   "bin": {
     "catladder": "./bin/catladder"
   },
@@ -41,6 +41,7 @@
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "prompt": "git+https://github.com/flatiron/prompt.git",
-    "ssh-exec": "^2.0.0"
+    "ssh-exec": "^2.0.0",
+    "update-notifier": "^2.1.0"
   }
 }

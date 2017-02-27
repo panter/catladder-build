@@ -1,3 +1,4 @@
 #!/usr/bin/env node
 
 require('../dist/index');
+require('../dist/update_notifier');

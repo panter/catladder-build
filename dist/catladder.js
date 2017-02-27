@@ -263,13 +263,16 @@ var actions = {
     done();
   },
   deploy: function deploy(environment, done) {
+    var next = function next() {
+      return actions.restart(environment, done);
+    };
     var config = readConfig();
 
     // const envConf = config.environments[environment];
     var sshConfig = getSshConfig(environment);
     actionTitle('deploying ' + environment);
     (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: [0, 1, 2] });
-    (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, done).pipe(process.stdout);
+    (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, next).pipe(process.stdout);
   },
   'build-deploy': function buildDeploy(environment, done) {
     actions.build(environment, function () {
@@ -308,4 +311,4 @@ if (actions[command]) {
   console.log(_lodash2['default'].keys(actions).join('\n'));
   done();
 }
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=catladder.js.map

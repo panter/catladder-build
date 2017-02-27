@@ -221,6 +221,7 @@ const actions = {
     done();
   },
   deploy(environment, done) {
+    const next = () => actions.restart(environment, done);
     const config = readConfig();
 
       // const envConf = config.environments[environment];
@@ -234,7 +235,7 @@ const actions = {
         pushd ~/app/bundle/programs/server
         npm install
         popd
-      `, sshConfig, done).pipe(process.stdout);
+      `, sshConfig, next).pipe(process.stdout);
   },
   'build-deploy': function (environment, done) {
     actions.build(environment, () => {

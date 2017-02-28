@@ -197,8 +197,9 @@ const doneError = (error, message) => {
   intro(`╗ 🙀  ${message}  😿`);
   intro('╚══════════════════════════════════════════════════');
   intro('😾         🐁 🐁 🐁 🐁 🐁 🐁');
-  intro(`${error && (error.message || error.reason)}`);
+  console.log(`${error && (error.message || error.reason)}`);
   intro('');
+  console.log(error && error.stack);
   intro('═══════════════════════════════════════════════════');
 };
 

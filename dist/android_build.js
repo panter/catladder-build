@@ -36,6 +36,10 @@ var getAndroidBuildDir = function getAndroidBuildDir(config, environment) {
   return _path2['default'].resolve(config.buildDir + '/' + environment + '/android');
 };
 exports.getAndroidBuildDir = getAndroidBuildDir;
+var getAndroidBuildProjectFolder = function getAndroidBuildProjectFolder(config, environment) {
+  return getAndroidBuildDir(config, environment) + '/project';
+};
+exports.getAndroidBuildProjectFolder = getAndroidBuildProjectFolder;
 var getAndroidBuildTool = function getAndroidBuildTool(config, buildTool) {
   return _path2['default'].resolve(process.env.ANDROID_HOME + '/build-tools/' + config.androidBuildToolVersion + '/' + buildTool);
 };
@@ -60,7 +64,7 @@ var getKeystoreProps = function getKeystoreProps(config, environment) {
   });
 };
 
-var initAndroid = function initAndroid(config, environment) {
+var androidInit = function androidInit(config, environment) {
   // create keystorePW if not existing
 
   var _getKeystoreConfig = getKeystoreConfig(config, environment);
@@ -84,8 +88,8 @@ var initAndroid = function initAndroid(config, environment) {
   (0, _child_process.execSync)('echo y | ' + createKeyCommand, { stdio: 'inherit' });
 };
 
-exports.initAndroid = initAndroid;
-var prepareAndroidForStore = function prepareAndroidForStore(config, environment) {
+exports.androidInit = androidInit;
+var androidPrepareForStore = function androidPrepareForStore(config, environment) {
   var _getKeystoreProps2 = getKeystoreProps(config, environment);
 
   var keystorePW = _getKeystoreProps2.keystorePW;
@@ -97,7 +101,7 @@ var prepareAndroidForStore = function prepareAndroidForStore(config, environment
     throw new Error('android build dir does not exist');
   }
   if (!_fs2['default'].existsSync(keyStore)) {
-    throw new Error('please call init-android ' + environment + ' first');
+    throw new Error('please call android-init ' + environment + ' first');
   }
   var now = (0, _moment2['default'])().format('YYYYMMDD-HHmm');
 
@@ -118,5 +122,5 @@ var prepareAndroidForStore = function prepareAndroidForStore(config, environment
 
   return outfile;
 };
-exports.prepareAndroidForStore = prepareAndroidForStore;
+exports.androidPrepareForStore = androidPrepareForStore;
 //# sourceMappingURL=android_build.js.map

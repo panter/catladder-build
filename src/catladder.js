@@ -128,7 +128,7 @@ const actions = {
         { cwd: config.appDir, stdio: 'inherit' },
       );
     // init android if it exists
-    if (fs.fileExists(getAndroidBuildDir(config, environment))) {
+    if (fs.existsSync(getAndroidBuildDir(config, environment))) {
       actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, `apps created in ${buildDir}`);
@@ -174,7 +174,7 @@ const [commandRaw, environment] = options._;
 const command = commandRaw && camelCase(commandRaw);
 
 intro('');
-intro('                                🐱 🔧');
+intro('                                   🐱 🔧');
 intro('         ╔═════ PANTER CATLADDER ════════');
 intro('       ╔═╝');
 intro(`     ╔═╝           v${version}`);
@@ -183,19 +183,43 @@ intro(' ╔═╝');
 intro('═╝');
 intro('');
 
-const done = (error, message) => {
+const doneSuccess = (message) => {
   intro('');
-  intro(`         ${message}`);
+  intro('');
   intro('╗');
-  intro('╚═╗                      👋 🐱');
-  intro('  ╚═════════════════════════════════════');
+  intro(`╚═╗ ${message}  👋 🐱`);
+  intro('  ╚════════════════════════════════════════════════');
 };
+
+const doneError = (error, message) => {
+  intro('');
+  intro('');
+  intro(`╗ 🙀  ${message}  😿`);
+  intro('╚══════════════════════════════════════════════════');
+  intro('😾         🐁 🐁 🐁 🐁 🐁 🐁');
+  intro(`${error && (error.message || error.reason)}`);
+  intro('');
+  intro('═══════════════════════════════════════════════════');
+};
+
+const done = (error, message) => {
+  if (!error) {
+    doneSuccess(message);
+  } else {
+    doneError(error, message);
+  }
+};
+
+
 if (actions[command]) {
-  try {
-    actions[command](environment, done);
-  } catch (e) {
-    console.log(e.message);
-    done(e, 'command failed');
+  if (command !== 'init' && !environment) {
+    doneError(null, 'please specify an environment');
+  } else {
+    try {
+      actions[command](environment, done);
+    } catch (e) {
+      done(e, 'command failed');
+    }
   }
 } else {
   console.log('available commands: ');

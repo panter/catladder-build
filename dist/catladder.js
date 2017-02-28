@@ -81,8 +81,7 @@ var actions = {
       if (!_fs2['default'].existsSync(buildDir)) {
         _fs2['default'].mkdirSync(buildDir);
       }
-      console.log('created ' + CONFIGFILE);
-      done();
+      done(null, 'created ' + CONFIGFILE);
     });
   },
   setup: function setup(environment, done) {
@@ -90,7 +89,7 @@ var actions = {
     _prompt2['default'].start();
 
     (0, _logs.actionTitle)('setting up ' + environment);
-    var passPathForEnvVars = config.passPath + '/' + environment + '.yaml';
+    var passPathForEnvVars = config.passPath + '/' + environment + '/env.yaml';
     // console.log(passPathForEnvVars);
     _prompt2['default'].get((0, _prompt_schemas.environmentSchema)(_extends({}, config, { environment: environment })), function (error, envConfig) {
       // write new envConfig
@@ -120,14 +119,15 @@ var actions = {
         }
         console.log('');
         console.log('~/app/env.sh has ben written on ', envConfig.host);
-        console.log('you need to restart the server');
-        done();
+        done(null, environment + ' is set up, please restart server');
       }).pipe(process.stdout);
     });
   },
   restart: function restart(environment, done) {
     (0, _logs.actionTitle)('restarting ' + environment);
-    (0, _sshExec2['default'])('./bin/nodejs.sh restart', (0, _config_utils.getSshConfig)(CONFIGFILE, environment), done).pipe(process.stdout);
+    (0, _sshExec2['default'])('./bin/nodejs.sh restart', (0, _config_utils.getSshConfig)(CONFIGFILE, environment), function () {
+      done(null, 'server restarted');
+    }).pipe(process.stdout);
   },
   buildServer: function buildServer(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
@@ -135,9 +135,9 @@ var actions = {
     var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
     (0, _logs.actionTitle)('building server ' + environment);
     console.log('build dir: ' + buildDir);
-    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
-    (0, _child_process.execSync)('meteor build --server-only --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: [0, 1, 2] });
-    done();
+    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
+    (0, _child_process.execSync)('meteor build --server-only --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+    done(null, 'server built');
   },
   buildApps: function buildApps(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
@@ -145,17 +145,25 @@ var actions = {
     var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
     (0, _logs.actionTitle)('building mobile apps ' + environment);
     console.log('build dir: ' + buildDir);
-    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
-    (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: [0, 1, 2] });
+    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
+    (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
     // init android if it exists
     if (_fs2['default'].fileExists((0, _android_build.getAndroidBuildDir)(config, environment))) {
-      actions.prepareAndroidForStore(config, environment, done);
+      actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, 'apps created in ' + buildDir);
     }
   },
-  prepareAndroidForStore: _android_build.prepareAndroidForStore,
-  initAndroid: _android_build.initAndroid,
+  prepareAndroidForStore: function prepareAndroidForStore(environment, done) {
+    var config = (0, _config_utils.readConfig)(CONFIGFILE);
+    var outfile = (0, _android_build.prepareAndroidForStore)(config, environment);
+    done(null, 'your apk is ready: ' + outfile);
+  },
+  initAndroid: function initAndroid(environment, done) {
+    var config = (0, _config_utils.readConfig)(CONFIGFILE);
+    (0, _android_build.initAndroid)(config, environment);
+    done(null, 'android is init');
+  },
   uploadServer: function uploadServer(environment, done) {
     var next = function next() {
       return actions.restart(environment, done);
@@ -165,7 +173,7 @@ var actions = {
     // const envConf = config.environments[environment];
     var sshConfig = (0, _config_utils.getSshConfig)(CONFIGFILE, environment);
     (0, _logs.actionTitle)('uploading server bundle to ' + environment);
-    (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: [0, 1, 2] });
+    (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: 'inherit' });
     (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, next).pipe(process.stdout);
   },
   deploy: function deploy(environment, done) {
@@ -182,13 +190,13 @@ var _options$_ = _slicedToArray(options._, 2);
 var commandRaw = _options$_[0];
 var environment = _options$_[1];
 
-var command = (0, _camelcase2['default'])(commandRaw);
+var command = commandRaw && (0, _camelcase2['default'])(commandRaw);
 
 (0, _logs.intro)('');
 (0, _logs.intro)('                                🐱 🔧');
-(0, _logs.intro)('         ╔═══ PANTER CATLADDER ═════');
+(0, _logs.intro)('         ╔═════ PANTER CATLADDER ════════');
 (0, _logs.intro)('       ╔═╝');
-(0, _logs.intro)('     ╔═╝          v' + _packageJson.version);
+(0, _logs.intro)('     ╔═╝           v' + _packageJson.version);
 (0, _logs.intro)('   ╔═╝');
 (0, _logs.intro)(' ╔═╝');
 (0, _logs.intro)('═╝');
@@ -199,10 +207,15 @@ var done = function done(error, message) {
   (0, _logs.intro)('         ' + message);
   (0, _logs.intro)('╗');
   (0, _logs.intro)('╚═╗                      👋 🐱');
-  (0, _logs.intro)('  ╚══════════════════════════════════');
+  (0, _logs.intro)('  ╚═════════════════════════════════════');
 };
 if (actions[command]) {
-  actions[command](environment, done);
+  try {
+    actions[command](environment, done);
+  } catch (e) {
+    console.log(e.message);
+    done(e, 'command failed');
+  }
 } else {
   console.log('available commands: ');
   console.log('');

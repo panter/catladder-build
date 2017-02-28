@@ -61,6 +61,11 @@ var initSchema = function initSchema(config) {
         description: 'build directory',
         type: 'string',
         'default': './build'
+      },
+      androidBuildToolVersion: {
+        description: 'android build tool version',
+        type: 'string',
+        'default': '25.0.2'
       }
     }
   }, config);
@@ -95,6 +100,10 @@ var environmentSchema = function environmentSchema(_ref) {
         description: 'android keystore file',
         type: 'string',
         'default': './android.keystore'
+      },
+      androidKeyname: {
+        description: 'Android keystore name / alias',
+        'default': appname + '-' + environment
       },
       androidDName: {
         description: 'android dname for key',

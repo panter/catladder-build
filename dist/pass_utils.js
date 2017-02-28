@@ -36,7 +36,8 @@ exports.hasPass = hasPass;
 var generatePass = function generatePass(passPath) {
   var length = arguments.length <= 1 || arguments[1] === undefined ? 32 : arguments[1];
 
-  (0, _child_process.execSync)('pass generate ' + passPath + ' ' + length);
+  // generate without symbols
+  (0, _child_process.execSync)('pass generate -n ' + passPath + ' ' + length);
   return readPass(passPath);
 };
 exports.generatePass = generatePass;
@@ -47,7 +48,7 @@ var readPassYaml = function readPassYaml(passPath) {
 exports.readPassYaml = readPassYaml;
 var writePass = function writePass(passPath, input) {
   console.log('writing to pass', passPath);
-  (0, _child_process.execSync)('pass insert ' + passPath + ' -m', { input: input });
+  (0, _child_process.execSync)('pass insert ' + passPath + ' -m', { input: input, stdio: ['pipe', 1, 2] });
 };
 
 exports.writePass = writePass;

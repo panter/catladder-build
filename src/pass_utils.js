@@ -19,14 +19,15 @@ export const hasPass = passPath => (
 );
 
 export const generatePass = (passPath, length = 32) => {
-  execSync(`pass generate ${passPath} ${length}`);
+  // generate without symbols
+  execSync(`pass generate -n ${passPath} ${length}`);
   return readPass(passPath);
 };
 export const readPassYaml = passPath => yaml.safeLoad(readPass(passPath));
 
 export const writePass = (passPath, input) => {
   console.log('writing to pass', passPath);
-  execSync(`pass insert ${passPath} -m`, { input });
+  execSync(`pass insert ${passPath} -m`, { input, stdio: ['pipe', 1, 2] });
 };
 
 export const editPass = (passPath) => {

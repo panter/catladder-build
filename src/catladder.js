@@ -47,8 +47,7 @@ const actions = {
       if (!fs.existsSync(buildDir)) {
         fs.mkdirSync(buildDir);
       }
-      console.log(`created ${CONFIGFILE}`);
-      done();
+      done(null, `created ${CONFIGFILE}`);
     });
   },
   setup(environment, done) {
@@ -56,7 +55,7 @@ const actions = {
     prompt.start();
 
     actionTitle(`setting up ${environment}`);
-    const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
+    const passPathForEnvVars = `${config.passPath}/${environment}/env.yaml`;
       // console.log(passPathForEnvVars);
     prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
         // write new envConfig
@@ -94,14 +93,15 @@ const actions = {
         }
         console.log('');
         console.log('~/app/env.sh has ben written on ', envConfig.host);
-        console.log('you need to restart the server');
-        done();
+        done(null, `${environment} is set up, please restart server`);
       }).pipe(process.stdout);
     });
   },
   restart(environment, done) {
     actionTitle(`restarting ${environment}`);
-    remoteExec('./bin/nodejs.sh restart', getSshConfig(CONFIGFILE, environment), done).pipe(process.stdout);
+    remoteExec('./bin/nodejs.sh restart', getSshConfig(CONFIGFILE, environment), () => {
+      done(null, 'server restarted');
+    }).pipe(process.stdout);
   },
   buildServer(environment, done) {
     const config = readConfig(CONFIGFILE);
@@ -109,12 +109,12 @@ const actions = {
     const buildDir = path.resolve(`${config.buildDir}/${environment}`);
     actionTitle(`building server ${environment}`);
     console.log(`build dir: ${buildDir}`);
-    execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+    execSync('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
     execSync(
         `meteor build --server-only --server ${envConf.url} ${buildDir}`,
-        { cwd: config.appDir, stdio: [0, 1, 2] },
+        { cwd: config.appDir, stdio: 'inherit' },
       );
-    done();
+    done(null, 'server built');
   },
   buildApps(environment, done) {
     const config = readConfig(CONFIGFILE);
@@ -122,20 +122,28 @@ const actions = {
     const buildDir = path.resolve(`${config.buildDir}/${environment}`);
     actionTitle(`building mobile apps ${environment}`);
     console.log(`build dir: ${buildDir}`);
-    execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+    execSync('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
     execSync(
         `meteor build --server ${envConf.url} ${buildDir}`,
-        { cwd: config.appDir, stdio: [0, 1, 2] },
+        { cwd: config.appDir, stdio: 'inherit' },
       );
     // init android if it exists
     if (fs.fileExists(getAndroidBuildDir(config, environment))) {
-      actions.prepareAndroidForStore(config, environment, done);
+      actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, `apps created in ${buildDir}`);
     }
   },
-  prepareAndroidForStore,
-  initAndroid,
+  prepareAndroidForStore(environment, done) {
+    const config = readConfig(CONFIGFILE);
+    const outfile = prepareAndroidForStore(config, environment);
+    done(null, `your apk is ready: ${outfile}`);
+  },
+  initAndroid(environment, done) {
+    const config = readConfig(CONFIGFILE);
+    initAndroid(config, environment);
+    done(null, 'android is init');
+  },
   uploadServer(environment, done) {
     const next = () => actions.restart(environment, done);
     const config = readConfig(CONFIGFILE);
@@ -143,7 +151,7 @@ const actions = {
       // const envConf = config.environments[environment];
     const sshConfig = getSshConfig(CONFIGFILE, environment);
     actionTitle(`uploading server bundle to ${environment}`);
-    execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: [0, 1, 2] });
+    execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: 'inherit' });
     remoteExec(`
         rm -rf ~/app/last
         mv ~/app/bundle ~/app/last
@@ -163,13 +171,13 @@ const actions = {
 
 };
 const [commandRaw, environment] = options._;
-const command = camelCase(commandRaw);
+const command = commandRaw && camelCase(commandRaw);
 
 intro('');
 intro('                                🐱 🔧');
-intro('         ╔═══ PANTER CATLADDER ═════');
+intro('         ╔═════ PANTER CATLADDER ════════');
 intro('       ╔═╝');
-intro(`     ╔═╝          v${version}`);
+intro(`     ╔═╝           v${version}`);
 intro('   ╔═╝');
 intro(' ╔═╝');
 intro('═╝');
@@ -180,10 +188,15 @@ const done = (error, message) => {
   intro(`         ${message}`);
   intro('╗');
   intro('╚═╗                      👋 🐱');
-  intro('  ╚══════════════════════════════════');
+  intro('  ╚═════════════════════════════════════');
 };
 if (actions[command]) {
-  actions[command](environment, done);
+  try {
+    actions[command](environment, done);
+  } catch (e) {
+    console.log(e.message);
+    done(e, 'command failed');
+  }
 } else {
   console.log('available commands: ');
   console.log('');

@@ -4,26 +4,29 @@ import fs from 'fs';
 import moment from 'moment';
 import path from 'path';
 import _ from 'lodash';
+import shellescape from 'shell-escape';
 
 import { readPass, generatePass, hasPass } from './pass_utils';
 
 export const getAndroidBuildDir = (config, environment) => path.resolve(`${config.buildDir}/${environment}/android`);
+export const getAndroidBuildTool = (config, buildTool) => path.resolve(`${process.env.ANDROID_HOME}/build-tools/${config.androidBuildToolVersion}/${buildTool}`);
 
 const getKeystoreConfig = (config, environment) => {
   const envConfig = _.get(config, ['environments', environment]);
   const keyStore = path.resolve(envConfig.androidKeystore);
-  const keystorePWPassPath = `${config.passPath}/${environment}/android_keystore_pw`;
-  const keyname = `${config.appname}-${environment}`;
+  const keystorePWPassPath = `${config.passPath}/android_keystore_pw`;
+  const keyname = envConfig.androidKeyname;
   const keyDName = envConfig.androidDName;
   return {
     keyStore, keyname, keystorePWPassPath, keyDName,
   };
 };
 const getKeystoreProps = (config, environment) => {
-  const { keyStore, keyname, keystorePWPassPath } = getKeystoreConfig(config, environment);
-  const keystorePW = readPass(keystorePWPassPath);
+  const keyStoreConfig = getKeystoreConfig(config, environment);
+  const { keystorePWPassPath } = keyStoreConfig;
+  const keystorePW = _.trim(readPass(keystorePWPassPath));
   return {
-    keystorePW, keyStore, keyname, keystorePWPassPath,
+    ...keyStoreConfig, keystorePW,
   };
 };
 
@@ -37,12 +40,11 @@ export const initAndroid = (config, environment) => {
 
   // kudos to http://stackoverflow.com/questions/3997748/how-can-i-create-a-keystore
   const { keystorePW, keyStore, keyname, keyDName } = getKeystoreProps(config, environment);
-
-  const createKeyCommand = `echo y | keytool -genkeypair -dname "${keyDName}" -alias ${keyname} --storepass ${keystorePW} --keystore ${keyStore} -validity 100`;
-  execSync(createKeyCommand);
+  const createKeyCommand = shellescape(['keytool', '-genkeypair', '-dname', keyDName, '-alias', keyname, '--storepass', keystorePW, '--keypass', keystorePW, '--keystore', keyStore, '-keyalg', 'RSA', '-keysize', 2048, '-validity', 10000]);
+  execSync(`echo y | ${createKeyCommand}`, { stdio: 'inherit' });
 };
 
-export const prepareAndroidForStore = (config, environment, done) => {
+export const prepareAndroidForStore = (config, environment) => {
   const { keystorePW, keyStore, keyname } = getKeystoreProps(config, environment);
   const androidBuildDir = getAndroidBuildDir(config, environment);
   if (!fs.existsSync(androidBuildDir)) {
@@ -51,18 +53,24 @@ export const prepareAndroidForStore = (config, environment, done) => {
   if (!fs.existsSync(keyStore)) {
     throw new Error(`please call init-android ${environment} first`);
   }
-  const now = moment.format('YYYYMMDD-HHmm');
+  const now = moment().format('YYYYMMDD-HHmm');
 
 
   const inFile = `${androidBuildDir}/release-unsigned.apk`;
+  const alignFile = `${androidBuildDir}/release-unsigned-aligned.apk`;
+  if (fs.existsSync(alignFile)) {
+    fs.unlinkSync(alignFile);
+  }
+  const zipAlignCommand = shellescape([getAndroidBuildTool(config, 'zipalign'), 4, inFile, alignFile]);
+  execSync(zipAlignCommand, { stdio: 'inherit' });
+
   const outfile = `${androidBuildDir}/${config.appname}-${environment}-${now}.apk`;
-  const jarsignCommand = `jarsigner -sigalg SHA1withRSA -digestalg SHA1 ${inFile} ${keyname} --keystore ${keyStore} --storepass ${keystorePW}`;
-  execSync(jarsignCommand, { stdio: [0, 1, 2] });
   if (fs.existsSync(outfile)) {
     fs.unlinkSync(outfile);
   }
+  const signCommand = shellescape([getAndroidBuildTool(config, 'apksigner'), 'sign', '--ks-key-alias', keyname, '--ks', keyStore, '--ks-pass', 'stdin', '--key-pass', 'stdin', '--out', outfile, alignFile]);
+  execSync(signCommand, { input: `${keystorePW}\n${keystorePW}`, stdio: ['pipe', 1, 2] });
 
-  const zipAlignCommand = `"$ANDROID_HOME/build-tools/23.0.3/zipalign" 4 ${inFile} ${outfile}`;
-  execSync(zipAlignCommand, { stdio: [0, 1, 2] });
-  done(null, `your apk is ready: ${outfile}`);
+
+  return outfile;
 };

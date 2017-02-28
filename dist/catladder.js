@@ -42,6 +42,10 @@ var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
+var _rimraf = require('rimraf');
+
+var _rimraf2 = _interopRequireDefault(_rimraf);
+
 var _config_utils = require('./config_utils');
 
 var _android_build = require('./android_build');
@@ -54,6 +58,12 @@ var _packageJson = require('../package.json');
 
 var _pass_utils = require('./pass_utils');
 
+var getIosBuildDir = function getIosBuildDir(config, environment) {
+  return _path2['default'].resolve(config.buildDir + '/' + environment + '/ios');
+};
+var getIosBuildProjectFolder = function getIosBuildProjectFolder(config, environment) {
+  return getIosBuildDir(config, environment) + '/project';
+};
 var CONFIGFILE = '.catladder.yaml';
 var options = (0, _minimist2['default'])(process.argv.slice(2));
 
@@ -146,22 +156,41 @@ var actions = {
     (0, _logs.actionTitle)('building mobile apps ' + environment);
     console.log('build dir: ' + buildDir);
     (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
+    // remove project folders if existing
+    // otherwise apps might get bloated with old code
+    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildProjectFolder)(config, environment))) {
+      _rimraf2['default'].sync((0, _android_build.getAndroidBuildProjectFolder)(config, environment));
+    }
+    if (_fs2['default'].existsSync(getIosBuildProjectFolder(config, environment))) {
+      _rimraf2['default'].sync(getIosBuildProjectFolder(config, environment));
+    }
     (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+    // open ios project if exists
+    actions.iosRevealProject(environment, config);
+
     // init android if it exists
     if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildDir)(config, environment))) {
-      actions.prepareAndroidForStore(environment, done);
+      actions.androidPrepareForStore(environment, done);
     } else {
       done(null, 'apps created in ' + buildDir);
     }
   },
-  prepareAndroidForStore: function prepareAndroidForStore(environment, done) {
+  iosRevealProject: function iosRevealProject(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    var outfile = (0, _android_build.prepareAndroidForStore)(config, environment);
+    if (_fs2['default'].existsSync(getIosBuildProjectFolder(config, environment))) {
+      (0, _child_process.execSync)('open ' + getIosBuildProjectFolder(config, environment));
+    } else {
+      done(null, 'ios project does not exist under ' + getIosBuildProjectFolder(config, environment));
+    }
+  },
+  androidPrepareForStore: function androidPrepareForStore(environment, done) {
+    var config = (0, _config_utils.readConfig)(CONFIGFILE);
+    var outfile = (0, _android_build.androidPrepareForStore)(config, environment);
     done(null, 'your apk is ready: ' + outfile);
   },
-  initAndroid: function initAndroid(environment, done) {
+  androidInit: function androidInit(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    (0, _android_build.initAndroid)(config, environment);
+    (0, _android_build.androidInit)(config, environment);
     done(null, 'android is init');
   },
   uploadServer: function uploadServer(environment, done) {

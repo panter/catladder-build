@@ -9,6 +9,7 @@ import shellescape from 'shell-escape';
 import { readPass, generatePass, hasPass } from './pass_utils';
 
 export const getAndroidBuildDir = (config, environment) => path.resolve(`${config.buildDir}/${environment}/android`);
+export const getAndroidBuildProjectFolder = (config, environment) => `${getAndroidBuildDir(config, environment)}/project`;
 export const getAndroidBuildTool = (config, buildTool) => path.resolve(`${process.env.ANDROID_HOME}/build-tools/${config.androidBuildToolVersion}/${buildTool}`);
 
 const getKeystoreConfig = (config, environment) => {
@@ -31,7 +32,7 @@ const getKeystoreProps = (config, environment) => {
 };
 
 
-export const initAndroid = (config, environment) => {
+export const androidInit = (config, environment) => {
   // create keystorePW if not existing
   const { keystorePWPassPath } = getKeystoreConfig(config, environment);
   if (!hasPass(keystorePWPassPath)) {
@@ -44,14 +45,14 @@ export const initAndroid = (config, environment) => {
   execSync(`echo y | ${createKeyCommand}`, { stdio: 'inherit' });
 };
 
-export const prepareAndroidForStore = (config, environment) => {
+export const androidPrepareForStore = (config, environment) => {
   const { keystorePW, keyStore, keyname } = getKeystoreProps(config, environment);
   const androidBuildDir = getAndroidBuildDir(config, environment);
   if (!fs.existsSync(androidBuildDir)) {
     throw new Error('android build dir does not exist');
   }
   if (!fs.existsSync(keyStore)) {
-    throw new Error(`please call init-android ${environment} first`);
+    throw new Error(`please call android-init ${environment} first`);
   }
   const now = moment().format('YYYYMMDD-HHmm');
 

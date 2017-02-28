@@ -1,108 +1,24 @@
+import _ from 'lodash';
+import camelCase from 'camelcase';
 import minimist from 'minimist';
 import prompt from 'prompt';
-import colors from 'colors/safe';
 import remoteExec from 'ssh-exec';
-import _ from 'lodash';
 import yaml from 'js-yaml';
+
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { execSync, spawnSync } from 'child_process';
 
+import { getSshConfig, readConfig, writeConfig, createEnvSh } from './config_utils';
+import { initAndroid, prepareAndroidForStore, getAndroidBuildDir } from './android_build';
+import { initSchema, environmentSchema } from './prompt_schemas';
+import { intro, actionTitle } from './logs';
 import { version } from '../package.json';
-
-const intro = line => console.log(colors.yellow(line));
-const actionTitle = (title) => {
-  intro('');
-  intro(`🐱 🔧 ${title}`);
-  intro('');
-};
+import { writePass, editPass, readPassYaml } from './pass_utils';
 
 const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
-const writeConfig = (config) => {
-  const theyaml = yaml.safeDump(config);
-  fs.writeFileSync(CONFIGFILE, theyaml);
-};
-const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
-const readPass = (passPath) => {
-  try {
-    return execSync(`pass show ${passPath}`, { stdio: [0], encoding: 'utf-8' });
-  } catch (error) {
-    if (error.message.indexOf('is not in the password store') !== -1) {
-      return null;
-    }
-    throw error;
-  }
-};
 
-const writePass = (passPath, input) => {
-  console.log('writing to pass', passPath);
-  execSync(`pass insert ${path} -m`, { input });
-};
-
-const editPass = (passPath) => {
-  spawnSync('pass', ['edit', passPath], {
-    stdio: 'inherit',
-  });
-};
-
-const withDefaults = (schema, defaults = {}) => ({
-  ...schema,
-  properties: _.mapValues(schema.properties, (value, key) => ({
-    ...value,
-    default: () => defaults[key] || _.result(value, 'default'),
-  })),
-});
-
-const initSchema = config => withDefaults({
-  properties: {
-    customer: {
-      description: 'Customer kürzel',
-      required: true,
-      default: 'pan',
-    },
-    appname: {
-      description: 'App name (for dbs, filenames, etc.)',
-      type: 'string',
-      required: true,
-      pattern: /^[a-zA-Z]+$/,
-    },
-    passPath: {
-      description: 'Path in pass',
-      required: true,
-      default: () => `${prompt.history('customer').value}/${prompt.history('appname').value}`,
-    },
-    appDir: {
-      description: 'app directory',
-      type: 'string',
-      default: './app',
-    },
-    buildDir: {
-      description: 'build directory',
-      type: 'string',
-      default: './build',
-    },
-  },
-}, config);
-
-const environmentSchema = ({ environment, appname, ...config }) => withDefaults({
-  properties: {
-    host: {
-      description: 'ssh host',
-      type: 'string',
-      required: true,
-      default: `${appname}-${environment}.panter.biz`,
-    },
-    user: {
-      description: 'ssh user',
-      default: 'app',
-    },
-    url: {
-      description: 'full url',
-      default: () => `https://${prompt.history('host').value}`,
-    },
-  },
-}, config[environment]);
 
 const defaultEnv = ({ config, envConfig }) => ({
   PORT: 8080,
@@ -115,30 +31,9 @@ const defaultEnv = ({ config, envConfig }) => ({
 });
 
 
-const createEnvSh = (envVars) => {
-  const getSanitziedValue = (value) => {
-    if (_.isObject(value)) {
-      return JSON.stringify(value);
-    }
-    return value;
-  };
-  return _.keys(envVars).map((key) => {
-    const value = getSanitziedValue(envVars[key]);
-    return `export ${key}='${value}'`;
-  }).join('\n');
-};
-
-const getSshConfig = (environment) => {
-  const config = readConfig();
-  return _.pick(
-    config.environments[environment],
-    ['host', 'user', 'password', 'key'],
-  );
-};
-
 const actions = {
   init(__, done) {
-    const configOld = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
+    const configOld = (fs.existsSync(CONFIGFILE) && readConfig(CONFIGFILE)) || {};
     prompt.start();
     prompt.get(initSchema(configOld), (error,
       configNew,
@@ -147,7 +42,7 @@ const actions = {
         ...configOld,
         ...configNew,
       };
-      writeConfig(config);
+      writeConfig(CONFIGFILE, config);
       const buildDir = path.resolve(config.buildDir);
       if (!fs.existsSync(buildDir)) {
         fs.mkdirSync(buildDir);
@@ -157,7 +52,7 @@ const actions = {
     });
   },
   setup(environment, done) {
-    const config = readConfig();
+    const config = readConfig(CONFIGFILE);
     prompt.start();
 
     actionTitle(`setting up ${environment}`);
@@ -167,10 +62,13 @@ const actions = {
         // write new envConfig
       config.environments = {
         ...config.environments,
-        [environment]: envConfig,
+        [environment]: {
+          ...envConfig,
+          envVarsPassPath: passPathForEnvVars,
+        },
       };
 
-      writeConfig({
+      writeConfig(CONFIGFILE, {
         ...config,
         environments: {
           ...config.environments,
@@ -179,7 +77,7 @@ const actions = {
       });
         // update env-vars in path
         // first get current vars in path
-      let envVars = yaml.safeLoad(readPass(passPathForEnvVars));
+      let envVars = readPassYaml(passPathForEnvVars);
         // if envVars do not exist yet, create new one and write to pass
       if (_.isEmpty(envVars)) {
         envVars = defaultEnv({ config, envConfig });
@@ -188,9 +86,9 @@ const actions = {
         // open editor to edit the en vars
       editPass(passPathForEnvVars);
         // load changed envVars and create env.sh on server
-      const envSh = createEnvSh(yaml.safeLoad(readPass(passPathForEnvVars)));
+      const envSh = createEnvSh({ version, environment }, readPassYaml(passPathForEnvVars));
         // create env.sh on server
-      remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(environment), (err) => {
+      remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(CONFIGFILE, environment), (err) => {
         if (err) {
           throw err;
         }
@@ -203,29 +101,48 @@ const actions = {
   },
   restart(environment, done) {
     actionTitle(`restarting ${environment}`);
-    remoteExec('./bin/nodejs.sh restart', getSshConfig(environment), done).pipe(process.stdout);
+    remoteExec('./bin/nodejs.sh restart', getSshConfig(CONFIGFILE, environment), done).pipe(process.stdout);
   },
-  build(environment, done) {
-    const config = readConfig();
-
+  buildServer(environment, done) {
+    const config = readConfig(CONFIGFILE);
     const envConf = config.environments[environment];
     const buildDir = path.resolve(`${config.buildDir}/${environment}`);
-    actionTitle(`building ${environment}`);
+    actionTitle(`building server ${environment}`);
+    console.log(`build dir: ${buildDir}`);
+    execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
+    execSync(
+        `meteor build --server-only --server ${envConf.url} ${buildDir}`,
+        { cwd: config.appDir, stdio: [0, 1, 2] },
+      );
+    done();
+  },
+  buildApps(environment, done) {
+    const config = readConfig(CONFIGFILE);
+    const envConf = config.environments[environment];
+    const buildDir = path.resolve(`${config.buildDir}/${environment}`);
+    actionTitle(`building mobile apps ${environment}`);
     console.log(`build dir: ${buildDir}`);
     execSync('meteor npm install', { cwd: config.appDir, stdio: [0, 1, 2] });
     execSync(
         `meteor build --server ${envConf.url} ${buildDir}`,
         { cwd: config.appDir, stdio: [0, 1, 2] },
       );
-    done();
+    // init android if it exists
+    if (fs.fileExists(getAndroidBuildDir(config, environment))) {
+      actions.prepareAndroidForStore(config, environment, done);
+    } else {
+      done(null, `apps created in ${buildDir}`);
+    }
   },
-  deploy(environment, done) {
+  prepareAndroidForStore,
+  initAndroid,
+  uploadServer(environment, done) {
     const next = () => actions.restart(environment, done);
-    const config = readConfig();
+    const config = readConfig(CONFIGFILE);
 
       // const envConf = config.environments[environment];
-    const sshConfig = getSshConfig(environment);
-    actionTitle(`deploying ${environment}`);
+    const sshConfig = getSshConfig(CONFIGFILE, environment);
+    actionTitle(`uploading server bundle to ${environment}`);
     execSync(`scp ${config.buildDir}/${environment}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: [0, 1, 2] });
     remoteExec(`
         rm -rf ~/app/last
@@ -236,15 +153,17 @@ const actions = {
         popd
       `, sshConfig, next).pipe(process.stdout);
   },
-  'build-deploy': function (environment, done) {
-    actions.build(environment, () => {
-      actions.deploy(environment, done);
+  deploy(environment, done) {
+    actionTitle(`deploying ${environment}`);
+    actions.buildServer(environment, () => {
+      actions.uploadServer(environment, done);
     });
   },
 
 
 };
-const [command, environment] = options._;
+const [commandRaw, environment] = options._;
+const command = camelCase(commandRaw);
 
 intro('');
 intro('                                🐱 🔧');
@@ -256,8 +175,9 @@ intro(' ╔═╝');
 intro('═╝');
 intro('');
 
-const done = () => {
+const done = (error, message) => {
   intro('');
+  intro(`         ${message}`);
   intro('╗');
   intro('╚═╗                      👋 🐱');
   intro('  ╚══════════════════════════════════');

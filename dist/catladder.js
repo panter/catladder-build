@@ -54,6 +54,12 @@ var _packageJson = require('../package.json');
 
 var _pass_utils = require('./pass_utils');
 
+var getIosBuildDir = function getIosBuildDir(config, environment) {
+  return _path2['default'].resolve(config.buildDir + '/' + environment + '/ios');
+};
+var getIosProjectFile = function getIosProjectFile(config, environment) {
+  return getIosBuildDir(config, environment) + '/project';
+};
 var CONFIGFILE = '.catladder.yaml';
 var options = (0, _minimist2['default'])(process.argv.slice(2));
 
@@ -147,11 +153,22 @@ var actions = {
     console.log('build dir: ' + buildDir);
     (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
     (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+
+    // open ios project if exists
+
     // init android if it exists
     if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildDir)(config, environment))) {
       actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, 'apps created in ' + buildDir);
+    }
+  },
+  openIosProject: function openIosProject(environment, done) {
+    var config = (0, _config_utils.readConfig)(CONFIGFILE);
+    if (_fs2['default'].existsSync(getIosProjectFile(config, environment))) {
+      (0, _child_process.execSync)('open ' + getIosProjectFile(config, environment));
+    } else {
+      done(null, 'ios project does not exist under ' + getIosProjectFile(config, environment));
     }
   },
   prepareAndroidForStore: function prepareAndroidForStore(environment, done) {

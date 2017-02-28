@@ -11,11 +11,14 @@ import path from 'path';
 
 import { getSshConfig, readConfig, writeConfig, createEnvSh } from './config_utils';
 import { initAndroid, prepareAndroidForStore, getAndroidBuildDir, getAndroidBuildProjectFolder } from './android_build';
+
 import { initSchema, environmentSchema } from './prompt_schemas';
 import { intro, actionTitle } from './logs';
 import { version } from '../package.json';
 import { writePass, editPass, readPassYaml } from './pass_utils';
 
+const getIosBuildDir = (config, environment) => path.resolve(`${config.buildDir}/${environment}/ios`);
+const getIosBuildProjectFolder = (config, environment) => `${getIosBuildDir(config, environment)}/project`;
 const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
 
@@ -124,6 +127,7 @@ const actions = {
     console.log(`build dir: ${buildDir}`);
     execSync('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
     // remove project folders if existing
+    // otherwise apps might get bloated with old code
     if (fs.existsSync(getAndroidBuildProjectFolder(config, environment))) {
       fs.unlinkSync(getAndroidBuildProjectFolder(config, environment));
     }
@@ -134,11 +138,21 @@ const actions = {
         `meteor build --server ${envConf.url} ${buildDir}`,
         { cwd: config.appDir, stdio: 'inherit' },
       );
+    // open ios project if exists
+
     // init android if it exists
     if (fs.existsSync(getAndroidBuildDir(config, environment))) {
       actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, `apps created in ${buildDir}`);
+    }
+  },
+  openIosProject(environment, done) {
+    const config = readConfig(CONFIGFILE);
+    if (fs.existsSync(getIosBuildProjectFolder(config, environment))) {
+      execSync(`open ${getIosBuildProjectFolder(config, environment)}`);
+    } else {
+      done(null, `ios project does not exist under ${getIosBuildProjectFolder(config, environment)}`);
     }
   },
   prepareAndroidForStore(environment, done) {

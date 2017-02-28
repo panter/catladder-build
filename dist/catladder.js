@@ -148,7 +148,7 @@ var actions = {
     (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
     (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
     // init android if it exists
-    if (_fs2['default'].fileExists((0, _android_build.getAndroidBuildDir)(config, environment))) {
+    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildDir)(config, environment))) {
       actions.prepareAndroidForStore(environment, done);
     } else {
       done(null, 'apps created in ' + buildDir);
@@ -193,7 +193,7 @@ var environment = _options$_[1];
 var command = commandRaw && (0, _camelcase2['default'])(commandRaw);
 
 (0, _logs.intro)('');
-(0, _logs.intro)('                                🐱 🔧');
+(0, _logs.intro)('                                   🐱 🔧');
 (0, _logs.intro)('         ╔═════ PANTER CATLADDER ════════');
 (0, _logs.intro)('       ╔═╝');
 (0, _logs.intro)('     ╔═╝           v' + _packageJson.version);
@@ -202,19 +202,42 @@ var command = commandRaw && (0, _camelcase2['default'])(commandRaw);
 (0, _logs.intro)('═╝');
 (0, _logs.intro)('');
 
-var done = function done(error, message) {
+var doneSuccess = function doneSuccess(message) {
   (0, _logs.intro)('');
-  (0, _logs.intro)('         ' + message);
+  (0, _logs.intro)('');
   (0, _logs.intro)('╗');
-  (0, _logs.intro)('╚═╗                      👋 🐱');
-  (0, _logs.intro)('  ╚═════════════════════════════════════');
+  (0, _logs.intro)('╚═╗ ' + message + '  👋 🐱');
+  (0, _logs.intro)('  ╚════════════════════════════════════════════════');
 };
+
+var doneError = function doneError(error, message) {
+  (0, _logs.intro)('');
+  (0, _logs.intro)('');
+  (0, _logs.intro)('╗ 🙀  ' + message + '  😿');
+  (0, _logs.intro)('╚══════════════════════════════════════════════════');
+  (0, _logs.intro)('😾         🐁 🐁 🐁 🐁 🐁 🐁');
+  (0, _logs.intro)('' + (error && (error.message || error.reason)));
+  (0, _logs.intro)('');
+  (0, _logs.intro)('═══════════════════════════════════════════════════');
+};
+
+var done = function done(error, message) {
+  if (!error) {
+    doneSuccess(message);
+  } else {
+    doneError(error, message);
+  }
+};
+
 if (actions[command]) {
-  try {
-    actions[command](environment, done);
-  } catch (e) {
-    console.log(e.message);
-    done(e, 'command failed');
+  if (command !== 'init' && !environment) {
+    doneError(null, 'please specify an environment');
+  } else {
+    try {
+      actions[command](environment, done);
+    } catch (e) {
+      done(e, 'command failed');
+    }
   }
 } else {
   console.log('available commands: ');

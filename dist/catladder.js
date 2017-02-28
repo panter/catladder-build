@@ -216,8 +216,9 @@ var doneError = function doneError(error, message) {
   (0, _logs.intro)('╗ 🙀  ' + message + '  😿');
   (0, _logs.intro)('╚══════════════════════════════════════════════════');
   (0, _logs.intro)('😾         🐁 🐁 🐁 🐁 🐁 🐁');
-  (0, _logs.intro)('' + (error && (error.message || error.reason)));
+  console.log('' + (error && (error.message || error.reason)));
   (0, _logs.intro)('');
+  console.log(error && error.stack);
   (0, _logs.intro)('═══════════════════════════════════════════════════');
 };
 

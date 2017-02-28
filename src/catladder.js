@@ -10,7 +10,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { getSshConfig, readConfig, writeConfig, createEnvSh } from './config_utils';
-import { initAndroid, prepareAndroidForStore, getAndroidBuildDir } from './android_build';
+import { initAndroid, prepareAndroidForStore, getAndroidBuildDir, getAndroidBuildProjectFolder } from './android_build';
 import { initSchema, environmentSchema } from './prompt_schemas';
 import { intro, actionTitle } from './logs';
 import { version } from '../package.json';
@@ -123,6 +123,13 @@ const actions = {
     actionTitle(`building mobile apps ${environment}`);
     console.log(`build dir: ${buildDir}`);
     execSync('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
+    // remove project folders if existing
+    if (fs.existsSync(getAndroidBuildProjectFolder(config, environment))) {
+      fs.unlinkSync(getAndroidBuildProjectFolder(config, environment));
+    }
+    if (fs.existsSync(getIosBuildProjectFolder(config, environment))) {
+      fs.unlinkSync(getIosBuildProjectFolder(config, environment));
+    }
     execSync(
         `meteor build --server ${envConf.url} ${buildDir}`,
         { cwd: config.appDir, stdio: 'inherit' },

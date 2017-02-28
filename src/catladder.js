@@ -156,50 +156,49 @@ const actions = {
       done();
     });
   },
-  setup(environments, done) {
+  setup(environment, done) {
     const config = readConfig();
     prompt.start();
-    environments.forEach((environment) => {
-      actionTitle(`setting up ${environment}`);
-      const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
+
+    actionTitle(`setting up ${environment}`);
+    const passPathForEnvVars = `${config.passPath}/${environment}.yaml`;
       // console.log(passPathForEnvVars);
-      prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
+    prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
         // write new envConfig
-        config.environments = {
+      config.environments = {
+        ...config.environments,
+        [environment]: envConfig,
+      };
+
+      writeConfig({
+        ...config,
+        environments: {
           ...config.environments,
           [environment]: envConfig,
-        };
-
-        writeConfig({
-          ...config,
-          environments: {
-            ...config.environments,
-            [environment]: envConfig,
-          },
-        });
+        },
+      });
         // update env-vars in path
         // first get current vars in path
-        let envVars = yaml.safeLoad(readPass(passPathForEnvVars));
+      let envVars = yaml.safeLoad(readPass(passPathForEnvVars));
         // if envVars do not exist yet, create new one and write to pass
-        if (_.isEmpty(envVars)) {
-          envVars = defaultEnv({ config, envConfig });
-          writePass(passPathForEnvVars, yaml.safeDump(envVars));
-        }
+      if (_.isEmpty(envVars)) {
+        envVars = defaultEnv({ config, envConfig });
+        writePass(passPathForEnvVars, yaml.safeDump(envVars));
+      }
         // open editor to edit the en vars
-        editPass(passPathForEnvVars);
+      editPass(passPathForEnvVars);
         // load changed envVars and create env.sh on server
-        const envSh = createEnvSh(yaml.safeLoad(readPass(passPathForEnvVars)));
+      const envSh = createEnvSh(yaml.safeLoad(readPass(passPathForEnvVars)));
         // create env.sh on server
-        remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(environment), (err) => {
-          if (err) {
-            throw err;
-          }
-          console.log('');
-          console.log('~/app/env.sh has ben written on ', envConfig.host);
-          console.log('you need to restart the server');
-          done();
-        }).pipe(process.stdout);
-      });
+      remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(environment), (err) => {
+        if (err) {
+          throw err;
+        }
+        console.log('');
+        console.log('~/app/env.sh has ben written on ', envConfig.host);
+        console.log('you need to restart the server');
+        done();
+      }).pipe(process.stdout);
     });
   },
   restart(environment, done) {

@@ -69,13 +69,11 @@ var options = (0, _minimist2['default'])(process.argv.slice(2));
 
 var defaultEnv = function defaultEnv(_ref) {
   var config = _ref.config;
-  var envConfig = _ref.envConfig;
   return {
     PORT: 8080,
     MONGO_URL: 'mongodb://localhost/' + config.appname,
     MONGO_OPLOG_URL: 'mongodb://localhost/local',
     MAIL_URL: 'smtp://localhost:25',
-    ROOT_URL: envConfig.url,
     METEOR_SETTINGS: {}
   };
 };
@@ -121,7 +119,10 @@ var actions = {
       // open editor to edit the en vars
       (0, _pass_utils.editPass)(passPathForEnvVars);
       // load changed envVars and create env.sh on server
-      var envSh = (0, _config_utils.createEnvSh)({ version: _packageJson.version, environment: environment }, (0, _pass_utils.readPassYaml)(passPathForEnvVars));
+      // we create ROOT_URL always from the config
+      var envSh = (0, _config_utils.createEnvSh)({ version: _packageJson.version, environment: environment }, _extends({}, (0, _pass_utils.readPassYaml)(passPathForEnvVars), {
+        ROOT_URL: envConfig.url
+      }));
       // create env.sh on server
       (0, _sshExec2['default'])('echo "' + envSh.replace(/"/g, '\\"') + '" > ~/app/env.sh', (0, _config_utils.getSshConfig)(CONFIGFILE, environment), function (err) {
         if (err) {

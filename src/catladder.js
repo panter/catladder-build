@@ -24,12 +24,11 @@ const CONFIGFILE = '.catladder.yaml';
 const options = minimist(process.argv.slice(2));
 
 
-const defaultEnv = ({ config, envConfig }) => ({
+const defaultEnv = ({ config }) => ({
   PORT: 8080,
   MONGO_URL: `mongodb://localhost/${config.appname}`,
   MONGO_OPLOG_URL: 'mongodb://localhost/local',
   MAIL_URL: 'smtp://localhost:25',
-  ROOT_URL: envConfig.url,
   METEOR_SETTINGS: {
   },
 });
@@ -89,7 +88,14 @@ const actions = {
         // open editor to edit the en vars
       editPass(passPathForEnvVars);
         // load changed envVars and create env.sh on server
-      const envSh = createEnvSh({ version, environment }, readPassYaml(passPathForEnvVars));
+        // we create ROOT_URL always from the config
+      const envSh = createEnvSh(
+        { version, environment },
+        {
+          ...readPassYaml(passPathForEnvVars),
+          ROOT_URL: envConfig.url,
+        },
+      );
         // create env.sh on server
       remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(CONFIGFILE, environment), (err) => {
         if (err) {

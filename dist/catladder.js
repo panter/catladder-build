@@ -204,7 +204,7 @@ var actions = {
     var sshConfig = (0, _config_utils.getSshConfig)(CONFIGFILE, environment);
     (0, _logs.actionTitle)('uploading server bundle to ' + environment);
     (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: 'inherit' });
-    (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, next).pipe(process.stdout);
+    (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        rm ~/app/current\n        ln -s ~/app/bundle ~/app/current\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, next).pipe(process.stdout);
   },
   deploy: function deploy(environment, done) {
     (0, _logs.actionTitle)('deploying ' + environment);

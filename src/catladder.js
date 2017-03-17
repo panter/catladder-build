@@ -184,6 +184,8 @@ const actions = {
     remoteExec(`
         rm -rf ~/app/last
         mv ~/app/bundle ~/app/last
+        rm ~/app/current
+        ln -s ~/app/bundle ~/app/current
         tar xfz app.tar.gz -C app
         pushd ~/app/bundle/programs/server
         npm install

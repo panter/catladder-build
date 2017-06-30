@@ -95,7 +95,8 @@ var execMeteorBuild = function execMeteorBuild(_ref6) {
   var buildDir = getBuildDir({ config: config, environment: environment });
   var envConf = config.environments[environment];
   // read build params
-  var buildEnv = envConf.buildEnv;
+  var _envConf$buildEnv = envConf.buildEnv;
+  var buildEnv = _envConf$buildEnv === undefined ? {} : _envConf$buildEnv;
 
   var buildEnvString = _lodash2['default'].map(buildEnv, function (value, key) {
     return key + '=\'' + value + '\'';

@@ -42,6 +42,11 @@ export const initSchema = config => withDefaults({
       type: 'string',
       default: '25.0.2',
     },
+    useYarn: {
+      description: 'use yarn to build (false: use npm)',
+      type: 'boolean',
+      default: true,
+    },
   },
 }, config);
 

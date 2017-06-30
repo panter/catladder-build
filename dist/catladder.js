@@ -58,23 +58,64 @@ var _packageJson = require('../package.json');
 
 var _pass_utils = require('./pass_utils');
 
-var getIosBuildDir = function getIosBuildDir(config, environment) {
-  return _path2['default'].resolve(config.buildDir + '/' + environment + '/ios');
+var getBuildDir = function getBuildDir(_ref) {
+  var config = _ref.config;
+  var environment = _ref.environment;
+  return _path2['default'].resolve(config.buildDir + '/' + environment);
 };
-var getIosBuildProjectFolder = function getIosBuildProjectFolder(config, environment) {
-  return getIosBuildDir(config, environment) + '/project';
+var getIosBuildDir = function getIosBuildDir(_ref2) {
+  var config = _ref2.config;
+  var environment = _ref2.environment;
+  return getBuildDir({ config: config, environment: environment }) + '/ios';
+};
+var getIosBuildProjectFolder = function getIosBuildProjectFolder(_ref3) {
+  var config = _ref3.config;
+  var environment = _ref3.environment;
+  return getIosBuildDir({ config: config, environment: environment }) + '/project';
 };
 var CONFIGFILE = '.catladder.yaml';
 var options = (0, _minimist2['default'])(process.argv.slice(2));
+var passEnvFile = function passEnvFile(_ref4) {
+  var config = _ref4.config;
+  var environment = _ref4.environment;
+  return config.passPath + '/' + environment + '/env.yaml';
+};
 
-var defaultEnv = function defaultEnv(_ref) {
-  var config = _ref.config;
+var execInstallNpmModules = function execInstallNpmModules(_ref5) {
+  var config = _ref5.config;
+
+  (0, _child_process.execSync)('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', { cwd: config.appDir, stdio: 'inherit' });
+};
+
+var execMeteorBuild = function execMeteorBuild(_ref6) {
+  var config = _ref6.config;
+  var environment = _ref6.environment;
+  var args = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+  var buildDir = getBuildDir({ config: config, environment: environment });
+  var envConf = config.environments[environment];
+  var passPathForEnvVars = passEnvFile({ config: config, environment: environment });
+  // read build params
+
+  var _ref7 = (0, _pass_utils.readPassYaml)(passPathForEnvVars) || {};
+
+  var build = _ref7.build;
+
+  var buildEnv = _lodash2['default'].map(build, function (value, key) {
+    return key + '=\'' + value + '\'';
+  }).join(' ');
+  (0, _child_process.execSync)(buildEnv + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+};
+
+var defaultEnv = function defaultEnv(_ref8) {
+  var config = _ref8.config;
   return {
     PORT: 8080,
     MONGO_URL: 'mongodb://localhost/' + config.appname,
     MONGO_OPLOG_URL: 'mongodb://localhost/local',
     MAIL_URL: 'smtp://localhost:25',
-    METEOR_SETTINGS: {}
+    METEOR_SETTINGS: {},
+    build: {}
   };
 };
 
@@ -97,14 +138,13 @@ var actions = {
     _prompt2['default'].start();
 
     (0, _logs.actionTitle)('setting up ' + environment);
-    var passPathForEnvVars = config.passPath + '/' + environment + '/env.yaml';
+    var passPathForEnvVars = passEnvFile({ config: config, environment: environment });
     // console.log(passPathForEnvVars);
     _prompt2['default'].get((0, _prompt_schemas.environmentSchema)(_extends({}, config, { environment: environment })), function (error, envConfig) {
       // write new envConfig
       config.environments = _extends({}, config.environments, _defineProperty({}, environment, _extends({}, envConfig, {
         envVarsPassPath: passPathForEnvVars
       })));
-
       (0, _config_utils.writeConfig)(CONFIGFILE, _extends({}, config, {
         environments: _extends({}, config.environments, _defineProperty({}, environment, envConfig))
       }));
@@ -134,6 +174,12 @@ var actions = {
       }).pipe(process.stdout);
     });
   },
+  editEnv: function editEnv(environment, done) {
+    var config = (0, _config_utils.readConfig)(CONFIGFILE);
+    var passPathForEnvVars = passEnvFile({ config: config, environment: environment });
+    (0, _pass_utils.editPass)(passPathForEnvVars);
+    done(null, 'env in pass edited. Remember that this not updates the server. Use catladder setup <env> to do so');
+  },
   restart: function restart(environment, done) {
     (0, _logs.actionTitle)('restarting ' + environment);
     (0, _sshExec2['default'])('./bin/nodejs.sh restart', (0, _config_utils.getSshConfig)(CONFIGFILE, environment), function () {
@@ -142,35 +188,34 @@ var actions = {
   },
   buildServer: function buildServer(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    var envConf = config.environments[environment];
-    var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
+    // read build params
     (0, _logs.actionTitle)('building server ' + environment);
-    console.log('build dir: ' + buildDir);
-    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
-    (0, _child_process.execSync)('meteor build --server-only --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+    execInstallNpmModules({ config: config });
+    execMeteorBuild({ config: config, environment: environment }, ['--server-only']);
     done(null, 'server built');
   },
   buildApps: function buildApps(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    var envConf = config.environments[environment];
-    var buildDir = _path2['default'].resolve(config.buildDir + '/' + environment);
+    var buildDir = getBuildDir({ config: config, environment: environment });
     (0, _logs.actionTitle)('building mobile apps ' + environment);
     console.log('build dir: ' + buildDir);
-    (0, _child_process.execSync)('meteor npm install', { cwd: config.appDir, stdio: 'inherit' });
+
     // remove project folders if existing
     // otherwise apps might get bloated with old code
-    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildProjectFolder)(config, environment))) {
-      _rimraf2['default'].sync((0, _android_build.getAndroidBuildProjectFolder)(config, environment));
+    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildProjectFolder)({ config: config, environment: environment }))) {
+      _rimraf2['default'].sync((0, _android_build.getAndroidBuildProjectFolder)({ config: config, environment: environment }));
     }
-    if (_fs2['default'].existsSync(getIosBuildProjectFolder(config, environment))) {
-      _rimraf2['default'].sync(getIosBuildProjectFolder(config, environment));
+    if (_fs2['default'].existsSync(getIosBuildProjectFolder({ config: config, environment: environment }))) {
+      _rimraf2['default'].sync(getIosBuildProjectFolder({ config: config, environment: environment }));
     }
-    (0, _child_process.execSync)('meteor build --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+    execInstallNpmModules({ config: config });
+    execMeteorBuild({ config: config, environment: environment });
+
     // open ios project if exists
     actions.iosRevealProject(environment, config);
 
     // init android if it exists
-    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildDir)(config, environment))) {
+    if (_fs2['default'].existsSync((0, _android_build.getAndroidBuildDir)({ config: config, environment: environment }))) {
       actions.androidPrepareForStore(environment, done);
     } else {
       done(null, 'apps created in ' + buildDir);
@@ -178,20 +223,20 @@ var actions = {
   },
   iosRevealProject: function iosRevealProject(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    if (_fs2['default'].existsSync(getIosBuildProjectFolder(config, environment))) {
-      (0, _child_process.execSync)('open ' + getIosBuildProjectFolder(config, environment));
+    if (_fs2['default'].existsSync(getIosBuildProjectFolder({ config: config, environment: environment }))) {
+      (0, _child_process.execSync)('open ' + getIosBuildProjectFolder({ config: config, environment: environment }));
     } else {
-      done(null, 'ios project does not exist under ' + getIosBuildProjectFolder(config, environment));
+      done(null, 'ios project does not exist under ' + getIosBuildProjectFolder({ config: config, environment: environment }));
     }
   },
   androidPrepareForStore: function androidPrepareForStore(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    var outfile = (0, _android_build.androidPrepareForStore)(config, environment);
+    var outfile = (0, _android_build.androidPrepareForStore)({ config: config, environment: environment });
     done(null, 'your apk is ready: ' + outfile);
   },
   androidInit: function androidInit(environment, done) {
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-    (0, _android_build.androidInit)(config, environment);
+    (0, _android_build.androidInit)({ config: config, environment: environment });
     done(null, 'android is init');
   },
   uploadServer: function uploadServer(environment, done) {
@@ -199,11 +244,11 @@ var actions = {
       return actions.restart(environment, done);
     };
     var config = (0, _config_utils.readConfig)(CONFIGFILE);
-
     // const envConf = config.environments[environment];
     var sshConfig = (0, _config_utils.getSshConfig)(CONFIGFILE, environment);
     (0, _logs.actionTitle)('uploading server bundle to ' + environment);
-    (0, _child_process.execSync)('scp ' + config.buildDir + '/' + environment + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: 'inherit' });
+    var buildDir = getBuildDir({ config: config, environment: environment });
+    (0, _child_process.execSync)('scp ' + buildDir + '/app.tar.gz ' + sshConfig.user + '@' + sshConfig.host + ':', { stdio: 'inherit' });
     (0, _sshExec2['default'])('\n        rm -rf ~/app/last\n        mv ~/app/bundle ~/app/last\n        rm ~/app/current\n        ln -s ~/app/bundle ~/app/current\n        tar xfz app.tar.gz -C app\n        pushd ~/app/bundle/programs/server\n        npm install\n        popd\n      ', sshConfig, next).pipe(process.stdout);
   },
   deploy: function deploy(environment, done) {
@@ -212,7 +257,6 @@ var actions = {
       actions.uploadServer(environment, done);
     });
   }
-
 };
 
 var _options$_ = _slicedToArray(options._, 2);

@@ -8,11 +8,11 @@ import shellescape from 'shell-escape';
 
 import { readPass, generatePass, hasPass } from './pass_utils';
 
-export const getAndroidBuildDir = (config, environment) => path.resolve(`${config.buildDir}/${environment}/android`);
-export const getAndroidBuildProjectFolder = (config, environment) => `${getAndroidBuildDir(config, environment)}/project`;
+export const getAndroidBuildDir = ({ config, environment }) => path.resolve(`${config.buildDir}/${environment}/android`);
+export const getAndroidBuildProjectFolder = ({ config, environment }) => `${getAndroidBuildDir({ config, environment })}/project`;
 export const getAndroidBuildTool = (config, buildTool) => path.resolve(`${process.env.ANDROID_HOME}/build-tools/${config.androidBuildToolVersion}/${buildTool}`);
 
-const getKeystoreConfig = (config, environment) => {
+const getKeystoreConfig = ({ config, environment }) => {
   const envConfig = _.get(config, ['environments', environment]);
   const keyStore = path.resolve(envConfig.androidKeystore);
   const keystorePWPassPath = `${config.passPath}/android_keystore_pw`;
@@ -22,8 +22,8 @@ const getKeystoreConfig = (config, environment) => {
     keyStore, keyname, keystorePWPassPath, keyDName,
   };
 };
-const getKeystoreProps = (config, environment) => {
-  const keyStoreConfig = getKeystoreConfig(config, environment);
+const getKeystoreProps = ({ config, environment }) => {
+  const keyStoreConfig = getKeystoreConfig({ config, environment });
   const { keystorePWPassPath } = keyStoreConfig;
   const keystorePW = _.trim(readPass(keystorePWPassPath));
   return {
@@ -32,22 +32,22 @@ const getKeystoreProps = (config, environment) => {
 };
 
 
-export const androidInit = (config, environment) => {
+export const androidInit = ({ config, environment }) => {
   // create keystorePW if not existing
-  const { keystorePWPassPath } = getKeystoreConfig(config, environment);
+  const { keystorePWPassPath } = getKeystoreConfig({ config, environment });
   if (!hasPass(keystorePWPassPath)) {
     generatePass(keystorePWPassPath);
   }
 
   // kudos to http://stackoverflow.com/questions/3997748/how-can-i-create-a-keystore
-  const { keystorePW, keyStore, keyname, keyDName } = getKeystoreProps(config, environment);
+  const { keystorePW, keyStore, keyname, keyDName } = getKeystoreProps({ config, environment });
   const createKeyCommand = shellescape(['keytool', '-genkeypair', '-dname', keyDName, '-alias', keyname, '--storepass', keystorePW, '--keypass', keystorePW, '--keystore', keyStore, '-keyalg', 'RSA', '-keysize', 2048, '-validity', 10000]);
   execSync(`echo y | ${createKeyCommand}`, { stdio: 'inherit' });
 };
 
-export const androidPrepareForStore = (config, environment) => {
-  const { keystorePW, keyStore, keyname } = getKeystoreProps(config, environment);
-  const androidBuildDir = getAndroidBuildDir(config, environment);
+export const androidPrepareForStore = ({ config, environment }) => {
+  const { keystorePW, keyStore, keyname } = getKeystoreProps({ config, environment });
+  const androidBuildDir = getAndroidBuildDir({ config, environment });
   if (!fs.existsSync(androidBuildDir)) {
     throw new Error('android build dir does not exist');
   }

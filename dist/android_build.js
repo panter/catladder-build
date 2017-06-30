@@ -32,12 +32,16 @@ var _shellEscape2 = _interopRequireDefault(_shellEscape);
 
 var _pass_utils = require('./pass_utils');
 
-var getAndroidBuildDir = function getAndroidBuildDir(config, environment) {
+var getAndroidBuildDir = function getAndroidBuildDir(_ref) {
+  var config = _ref.config;
+  var environment = _ref.environment;
   return _path2['default'].resolve(config.buildDir + '/' + environment + '/android');
 };
 exports.getAndroidBuildDir = getAndroidBuildDir;
-var getAndroidBuildProjectFolder = function getAndroidBuildProjectFolder(config, environment) {
-  return getAndroidBuildDir(config, environment) + '/project';
+var getAndroidBuildProjectFolder = function getAndroidBuildProjectFolder(_ref2) {
+  var config = _ref2.config;
+  var environment = _ref2.environment;
+  return getAndroidBuildDir({ config: config, environment: environment }) + '/project';
 };
 exports.getAndroidBuildProjectFolder = getAndroidBuildProjectFolder;
 var getAndroidBuildTool = function getAndroidBuildTool(config, buildTool) {
@@ -45,7 +49,10 @@ var getAndroidBuildTool = function getAndroidBuildTool(config, buildTool) {
 };
 
 exports.getAndroidBuildTool = getAndroidBuildTool;
-var getKeystoreConfig = function getKeystoreConfig(config, environment) {
+var getKeystoreConfig = function getKeystoreConfig(_ref3) {
+  var config = _ref3.config;
+  var environment = _ref3.environment;
+
   var envConfig = _lodash2['default'].get(config, ['environments', environment]);
   var keyStore = _path2['default'].resolve(envConfig.androidKeystore);
   var keystorePWPassPath = config.passPath + '/android_keystore_pw';
@@ -55,8 +62,11 @@ var getKeystoreConfig = function getKeystoreConfig(config, environment) {
     keyStore: keyStore, keyname: keyname, keystorePWPassPath: keystorePWPassPath, keyDName: keyDName
   };
 };
-var getKeystoreProps = function getKeystoreProps(config, environment) {
-  var keyStoreConfig = getKeystoreConfig(config, environment);
+var getKeystoreProps = function getKeystoreProps(_ref4) {
+  var config = _ref4.config;
+  var environment = _ref4.environment;
+
+  var keyStoreConfig = getKeystoreConfig({ config: config, environment: environment });
   var keystorePWPassPath = keyStoreConfig.keystorePWPassPath;
 
   var keystorePW = _lodash2['default'].trim((0, _pass_utils.readPass)(keystorePWPassPath));
@@ -64,10 +74,13 @@ var getKeystoreProps = function getKeystoreProps(config, environment) {
   });
 };
 
-var androidInit = function androidInit(config, environment) {
+var androidInit = function androidInit(_ref5) {
+  var config = _ref5.config;
+  var environment = _ref5.environment;
+
   // create keystorePW if not existing
 
-  var _getKeystoreConfig = getKeystoreConfig(config, environment);
+  var _getKeystoreConfig = getKeystoreConfig({ config: config, environment: environment });
 
   var keystorePWPassPath = _getKeystoreConfig.keystorePWPassPath;
 
@@ -77,7 +90,7 @@ var androidInit = function androidInit(config, environment) {
 
   // kudos to http://stackoverflow.com/questions/3997748/how-can-i-create-a-keystore
 
-  var _getKeystoreProps = getKeystoreProps(config, environment);
+  var _getKeystoreProps = getKeystoreProps({ config: config, environment: environment });
 
   var keystorePW = _getKeystoreProps.keystorePW;
   var keyStore = _getKeystoreProps.keyStore;
@@ -89,14 +102,17 @@ var androidInit = function androidInit(config, environment) {
 };
 
 exports.androidInit = androidInit;
-var androidPrepareForStore = function androidPrepareForStore(config, environment) {
-  var _getKeystoreProps2 = getKeystoreProps(config, environment);
+var androidPrepareForStore = function androidPrepareForStore(_ref6) {
+  var config = _ref6.config;
+  var environment = _ref6.environment;
+
+  var _getKeystoreProps2 = getKeystoreProps({ config: config, environment: environment });
 
   var keystorePW = _getKeystoreProps2.keystorePW;
   var keyStore = _getKeystoreProps2.keyStore;
   var keyname = _getKeystoreProps2.keyname;
 
-  var androidBuildDir = getAndroidBuildDir(config, environment);
+  var androidBuildDir = getAndroidBuildDir({ config: config, environment: environment });
   if (!_fs2['default'].existsSync(androidBuildDir)) {
     throw new Error('android build dir does not exist');
   }

@@ -136,14 +136,11 @@ var actions = {
     (0, _logs.actionTitle)('setting up ' + environment);
     var passPathForEnvVars = passEnvFile({ config: config, environment: environment });
     // console.log(passPathForEnvVars);
+    var oldEnvConfig = _lodash2['default'].get(config, ['environments', environment], {});
     _prompt2['default'].get((0, _prompt_schemas.environmentSchema)(_extends({}, config, { environment: environment })), function (error, envConfig) {
       // write new envConfig
-      config.environments = _extends({}, config.environments, _defineProperty({}, environment, _extends({}, envConfig, {
-        envVarsPassPath: passPathForEnvVars
-      })));
-      (0, _config_utils.writeConfig)(CONFIGFILE, _extends({}, config, {
-        environments: _extends({}, config.environments, _defineProperty({}, environment, envConfig))
-      }));
+      config.environments = _extends({}, config.environments, _defineProperty({}, environment, _extends({}, oldEnvConfig, envConfig)));
+      (0, _config_utils.writeConfig)(CONFIGFILE, config);
       // update env-vars in path
       // first get current vars in path
       var envVars = (0, _pass_utils.readPassYaml)(passPathForEnvVars);
@@ -316,4 +313,5 @@ if (actions[command]) {
   console.log(_lodash2['default'].keys(actions).join('\n'));
   done();
 }
+// merge with old config
 //# sourceMappingURL=catladder.js.map

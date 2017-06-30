@@ -74,22 +74,17 @@ const actions = {
     actionTitle(`setting up ${environment}`);
     const passPathForEnvVars = passEnvFile({ config, environment });
     // console.log(passPathForEnvVars);
+    const oldEnvConfig = _.get(config, ['environments', environment], {});
     prompt.get(environmentSchema({ ...config, environment }), (error, envConfig) => {
       // write new envConfig
       config.environments = {
         ...config.environments,
         [environment]: {
+          ...oldEnvConfig, // merge with old config
           ...envConfig,
-          envVarsPassPath: passPathForEnvVars,
         },
       };
-      writeConfig(CONFIGFILE, {
-        ...config,
-        environments: {
-          ...config.environments,
-          [environment]: envConfig,
-        },
-      });
+      writeConfig(CONFIGFILE, config);
       // update env-vars in path
       // first get current vars in path
       let envVars = readPassYaml(passPathForEnvVars);

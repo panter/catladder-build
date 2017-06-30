@@ -94,28 +94,23 @@ var execMeteorBuild = function execMeteorBuild(_ref6) {
 
   var buildDir = getBuildDir({ config: config, environment: environment });
   var envConf = config.environments[environment];
-  var passPathForEnvVars = passEnvFile({ config: config, environment: environment });
   // read build params
+  var buildEnv = envConf.buildEnv;
 
-  var _ref7 = (0, _pass_utils.readPassYaml)(passPathForEnvVars) || {};
-
-  var build = _ref7.build;
-
-  var buildEnv = _lodash2['default'].map(build, function (value, key) {
+  var buildEnvString = _lodash2['default'].map(buildEnv, function (value, key) {
     return key + '=\'' + value + '\'';
   }).join(' ');
-  (0, _child_process.execSync)(buildEnv + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+  (0, _child_process.execSync)(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
 };
 
-var defaultEnv = function defaultEnv(_ref8) {
-  var config = _ref8.config;
+var defaultEnv = function defaultEnv(_ref7) {
+  var config = _ref7.config;
   return {
     PORT: 8080,
     MONGO_URL: 'mongodb://localhost/' + config.appname,
     MONGO_OPLOG_URL: 'mongodb://localhost/local',
     MAIL_URL: 'smtp://localhost:25',
-    METEOR_SETTINGS: {},
-    build: {}
+    METEOR_SETTINGS: {}
   };
 };
 

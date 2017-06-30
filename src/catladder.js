@@ -30,12 +30,11 @@ const execInstallNpmModules = ({ config }) => {
 const execMeteorBuild = ({ config, environment }, args = []) => {
   const buildDir = getBuildDir({ config, environment });
   const envConf = config.environments[environment];
-  const passPathForEnvVars = passEnvFile({ config, environment });
   // read build params
-  const { build } = readPassYaml(passPathForEnvVars) || {};
-  const buildEnv = _.map(build, (value, key) => `${key}='${value}'`).join(' ');
+  const { buildEnv = {} } = envConf;
+  const buildEnvString = _.map(buildEnv, (value, key) => `${key}='${value}'`).join(' ');
   execSync(
-    `${buildEnv} meteor build ${args.join(' ')} --server ${envConf.url} ${buildDir}`,
+    `${buildEnvString} meteor build ${args.join(' ')} --server ${envConf.url} ${buildDir}`,
     { cwd: config.appDir, stdio: 'inherit' },
   );
 };
@@ -46,8 +45,6 @@ const defaultEnv = ({ config }) => ({
   MONGO_OPLOG_URL: 'mongodb://localhost/local',
   MAIL_URL: 'smtp://localhost:25',
   METEOR_SETTINGS: {
-  },
-  build: {
   },
 });
 

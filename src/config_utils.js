@@ -9,7 +9,6 @@ export const writeConfig = (configFile, config) => {
 };
 export const readConfig = configFile => yaml.safeLoad(fs.readFileSync(configFile));
 
-
 export const getSshConfig = (configFile, environment) => {
   const config = readConfig(configFile);
   return _.pick(
@@ -18,7 +17,6 @@ export const getSshConfig = (configFile, environment) => {
   );
 };
 
-
 export const createEnvSh = ({ environment, version }, envVars) => {
   const getSanitziedValue = (value) => {
     if (_.isObject(value)) {
@@ -26,7 +24,8 @@ export const createEnvSh = ({ environment, version }, envVars) => {
     }
     return value;
   };
-  const body = _.keys(envVars).map((key) => {
+  // build is excluded, that is only used while building
+  const body = _.keys(_.omit(envVars, ['build'])).map((key) => {
     const value = getSanitziedValue(envVars[key]);
 
     return `export ${key}='${value}'`;

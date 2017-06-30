@@ -44,7 +44,8 @@ var createEnvSh = function createEnvSh(_ref, envVars) {
     }
     return value;
   };
-  var body = _lodash2['default'].keys(envVars).map(function (key) {
+  // build is excluded, that is only used while building
+  var body = _lodash2['default'].keys(_lodash2['default'].omit(envVars, ['build'])).map(function (key) {
     var value = getSanitziedValue(envVars[key]);
 
     return 'export ' + key + '=\'' + value + '\'';

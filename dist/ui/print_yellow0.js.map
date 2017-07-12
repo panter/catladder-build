@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/ui/print_yellow0.js"],"names":[],"mappings":";;;;;;;;0BAAmB,aAAa;;;;qBAEjB,UAAA,IAAI;SAAI,OAAO,CAAC,GAAG,CAAC,wBAAO,MAAM,CAAC,IAAI,CAAC,CAAC;CAAA","file":"print_yellow0.js","sourcesContent":["import colors from 'colors/safe';\n\nexport default line => console.log(colors.yellow(line));\n"]}

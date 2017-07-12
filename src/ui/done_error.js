@@ -1,13 +1,13 @@
-import printYellow from './print_yellow';
+import printError from './print_error';
 
 export default (error, message) => {
-  printYellow('');
-  printYellow('');
-  printYellow(`╗ 🙀  ${message}  😿`);
-  printYellow('╚══════════════════════════════════════════════════');
-  printYellow('😾         🐁 🐁 🐁 🐁 🐁 🐁');
-  console.log(`${error && (error.message || error.reason)}`);
-  printYellow('');
-  console.log(error && error.stack);
-  printYellow('═══════════════════════════════════════════════════');
+  printError('');
+  printError('');
+  printError(`╗ 🙀  ${message}  😿`);
+  printError('╚═══════════════════════════════════════════════════════════════════════════════');
+  printError('😾         🐁 🐁 🐁 🐁 🐁 🐁');
+  console.log(`${error ? (error.message || error.reason) : ''}`);
+  printError('');
+  console.log(error ? error.stack : '');
+  printError('════════════════════════════════════════════════════════════════════════════════');
 };

@@ -5,5 +5,5 @@ export default (message) => {
   printYellow('');
   printYellow('╗');
   printYellow(`╚═╗ ${message}  👋 🐱`);
-  printYellow('  ╚════════════════════════════════════════════════');
+  printYellow('  ╚═════════════════════════════════════════════════════════════════════════════');
 };

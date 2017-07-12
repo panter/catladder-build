@@ -6,7 +6,7 @@ import path from 'path';
 import _ from 'lodash';
 import shellescape from 'shell-escape';
 
-import { readPass, generatePass, hasPass } from './pass_utils';
+import { readPass, generatePass, hasPass } from '../utils/pass_utils';
 
 export const getAndroidBuildDir = ({ config, environment }) => path.resolve(`${config.buildDir}/${environment}/android`);
 export const getAndroidBuildProjectFolder = ({ config, environment }) => `${getAndroidBuildDir({ config, environment })}/project`;

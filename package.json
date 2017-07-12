@@ -1,7 +1,7 @@
 {
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",
@@ -28,7 +28,7 @@
     "prepublish": "npm run compile",
     "test": "babel-node --stage 1 test/harness.js test/**/*.js",
     "compile": "npm run lint && babel src -s -d dist",
-    "compile:watch": "watch 'npm run compile' src",
+    "compile:watch": "watch 'npm run compile' src/**",
     "lint": "eslint src/**.js"
   },
   "main": "./dist/catladder.js",

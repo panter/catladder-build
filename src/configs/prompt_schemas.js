@@ -1,5 +1,6 @@
-import prompt from 'prompt';
 import _ from 'lodash';
+import prompt from 'prompt';
+
 
 const withDefaults = (schema, defaults = {}) => ({
   ...schema,

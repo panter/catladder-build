@@ -2,7 +2,7 @@ import _ from 'lodash';
 import camelCase from 'camelcase';
 import minimist from 'minimist';
 
-import actions from './actions';
+import * as actions from './actions';
 import doneError from './ui/done_error';
 import doneSuccess from './ui/done_success';
 import intro from './ui/intro';

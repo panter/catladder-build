@@ -44,18 +44,15 @@ var _upload_server = require('./upload_server');
 
 var _upload_server2 = _interopRequireDefault(_upload_server);
 
-exports['default'] = {
-  init: _init2['default'],
-  setup: _setup2['default'],
-  editEnv: _edit_env2['default'],
-  restart: _restart2['default'],
-  buildServer: _build_server2['default'],
-  buildApps: _build_apps2['default'],
-  iosRevealProject: _ios_reveal_project2['default'],
-  androidPrepareForStore: _buildAndroid_build.androidPrepareForStore,
-  androidInit: _buildAndroid_build.androidInit,
-  uploadServer: _upload_server2['default'],
-  deploy: _deploy2['default']
-};
-module.exports = exports['default'];
+exports.init = _init2['default'];
+exports.setup = _setup2['default'];
+exports.editEnv = _edit_env2['default'];
+exports.restart = _restart2['default'];
+exports.buildServer = _build_server2['default'];
+exports.buildApps = _build_apps2['default'];
+exports.iosRevealProject = _ios_reveal_project2['default'];
+exports.androidPrepareForStore = _buildAndroid_build.androidPrepareForStore;
+exports.androidInit = _buildAndroid_build.androidInit;
+exports.uploadServer = _upload_server2['default'];
+exports.deploy = _deploy2['default'];
 //# sourceMappingURL=index.js.map

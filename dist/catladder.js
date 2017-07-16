@@ -4,6 +4,8 @@ var _slicedToArray = require('babel-runtime/helpers/sliced-to-array')['default']
 
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
 
+var _interopRequireWildcard = require('babel-runtime/helpers/interop-require-wildcard')['default'];
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -18,7 +20,7 @@ var _minimist2 = _interopRequireDefault(_minimist);
 
 var _actions = require('./actions');
 
-var _actions2 = _interopRequireDefault(_actions);
+var actions = _interopRequireWildcard(_actions);
 
 var _uiDone_error = require('./ui/done_error');
 
@@ -53,12 +55,12 @@ var done = function done(error, message) {
   }
 };
 
-if (_actions2['default'][command]) {
+if (actions[command]) {
   if (command !== 'init' && !environment) {
     (0, _uiDone_error2['default'])(null, 'please specify an environment');
   } else {
     try {
-      _actions2['default'][command](environment, done);
+      actions[command](environment, done);
     } catch (e) {
       done(e, 'command failed');
     }
@@ -66,7 +68,7 @@ if (_actions2['default'][command]) {
 } else {
   console.log('available commands: ');
   console.log('');
-  console.log(_lodash2['default'].keys(_actions2['default']).join('\n'));
+  console.log(_lodash2['default'].keys(actions).join('\n'));
   done();
 }
 //# sourceMappingURL=catladder.js.map

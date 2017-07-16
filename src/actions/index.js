@@ -9,8 +9,7 @@ import restart from './restart';
 import setup from './setup';
 import uploadServer from './upload_server';
 
-
-export default {
+export {
   init,
   setup,
   editEnv,

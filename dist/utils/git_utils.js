@@ -22,5 +22,10 @@ exports.getBuildNumberFromGit = getBuildNumberFromGit;
 var getTagFromGit = function getTagFromGit() {
   return _lodash2['default'].trim((0, _child_process.execSync)('git describe --tags'));
 };
+
 exports.getTagFromGit = getTagFromGit;
+var getFullVersionString = function getFullVersionString(env) {
+  return env + '-' + getTagFromGit() + '@' + getBuildNumberFromGit();
+};
+exports.getFullVersionString = getFullVersionString;
 //# sourceMappingURL=git_utils.js.map

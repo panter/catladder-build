@@ -9,3 +9,5 @@ export const getBuildNumberFromGit = (factor = 10) => (
 export const getTagFromGit = () => (
   _.trim(execSync('git describe --tags'))
 );
+
+export const getFullVersionString = env => `${env}-${getTagFromGit()}@${getBuildNumberFromGit()}`;

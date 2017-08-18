@@ -6,13 +6,13 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _rimraf = require('rimraf');
-
-var _rimraf2 = _interopRequireDefault(_rimraf);
-
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
+
+var _rimraf = require('rimraf');
+
+var _rimraf2 = _interopRequireDefault(_rimraf);
 
 var _buildAndroid_build = require('../build/android_build');
 
@@ -54,8 +54,11 @@ exports['default'] = function (environment, done) {
   if (_fs2['default'].existsSync((0, _configsDirectories.getIosBuildProjectFolder)({ config: config, environment: environment }))) {
     _rimraf2['default'].sync((0, _configsDirectories.getIosBuildProjectFolder)({ config: config, environment: environment }));
   }
-
-  (0, _buildExec_meteor_build2['default'])({ config: config, environment: environment });
+  var additionalBuildEnv = {
+    CORDOVA_APP_BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
+    CORDOVA_APP_VERSION: (0, _utilsGit_utils.getVersionFromTag)()
+  };
+  (0, _buildExec_meteor_build2['default'])({ config: config, environment: environment, additionalBuildEnv: additionalBuildEnv });
 
   // open ios project if exists
   (0, _ios_reveal_project2['default'])(environment, config);

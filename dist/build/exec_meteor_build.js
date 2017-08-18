@@ -16,8 +16,6 @@ var _child_process = require('child_process');
 
 var _configsDirectories = require('../configs/directories');
 
-var _utilsGit_utils = require('../utils/git_utils');
-
 var execInstallNpmModules = function execInstallNpmModules(_ref) {
   var config = _ref.config;
 
@@ -37,11 +35,7 @@ exports['default'] = function (_ref2) {
   var _envConf$buildEnv = envConf.buildEnv;
   var buildEnv = _envConf$buildEnv === undefined ? {} : _envConf$buildEnv;
 
-  var buildEnvWithAppVersions = _extends({}, additionalBuildEnv, {
-    VERSION_BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
-    VERSION_TAG: (0, _utilsGit_utils.getTagFromGit)(),
-    VERSION_FULL_STRING: (0, _utilsGit_utils.getFullVersionString)(environment)
-  }, buildEnv);
+  var buildEnvWithAppVersions = _extends({}, additionalBuildEnv, buildEnv);
   var buildEnvString = _lodash2['default'].map(buildEnvWithAppVersions, function (value, key) {
     return key + '=\'' + value + '\'';
   }).join(' ');

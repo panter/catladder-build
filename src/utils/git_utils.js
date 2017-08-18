@@ -10,6 +10,18 @@ export const getTagFromGit = () => (
   _.trim(execSync('git describe --tags'))
 );
 
-export const getFullGitVersion = () => `${getTagFromGit()}@${getBuildNumberFromGit()}`;
+export const sanitizeVersionString = versionString => (
+  versionString.replace('v', '')
+);
+
+export const getVersionFromTag = () => {
+  const parts = getTagFromGit().split('/');
+  if (parts.length === 1) {
+    return sanitizeVersionString(parts[0]);
+  }
+  return sanitizeVersionString(parts[parts.length - 1]);
+};
+
+export const getFullGitVersion = () => `${getVersionFromTag()}@${getBuildNumberFromGit()}`;
 
 export const getFullVersionString = env => `${env}-${getFullGitVersion()}`;

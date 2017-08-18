@@ -1,13 +1,17 @@
-import rimraf from 'rimraf';
-
 import fs from 'fs';
+
+import rimraf from 'rimraf';
 
 import {
   getAndroidBuildDir,
   getAndroidBuildProjectFolder,
 } from '../build/android_build';
 import { getBuildDir, getIosBuildProjectFolder } from '../configs/directories';
-import { getFullVersionString } from '../utils/git_utils';
+import {
+  getBuildNumberFromGit,
+  getFullVersionString,
+  getVersionFromTag,
+} from '../utils/git_utils';
 import { readConfig } from '../utils/config_utils';
 import actionTitle from '../ui/action_title';
 import androidPrepareForStore from './android_prepare_for_store';
@@ -31,8 +35,11 @@ export default (environment, done) => {
   if (fs.existsSync(getIosBuildProjectFolder({ config, environment }))) {
     rimraf.sync(getIosBuildProjectFolder({ config, environment }));
   }
-
-  execMeteorBuild({ config, environment });
+  const additionalBuildEnv = {
+    CORDOVA_APP_BUILD_NUMBER: getBuildNumberFromGit(),
+    CORDOVA_APP_VERSION: getVersionFromTag(),
+  };
+  execMeteorBuild({ config, environment, additionalBuildEnv });
 
   // open ios project if exists
   iosRevealProject(environment, config);

@@ -24,8 +24,22 @@ var getTagFromGit = function getTagFromGit() {
 };
 
 exports.getTagFromGit = getTagFromGit;
+var sanitizeVersionString = function sanitizeVersionString(versionString) {
+  return versionString.replace('v', '');
+};
+
+exports.sanitizeVersionString = sanitizeVersionString;
+var getVersionFromTag = function getVersionFromTag() {
+  var parts = getTagFromGit().split('/');
+  if (parts.length === 1) {
+    return sanitizeVersionString(parts[0]);
+  }
+  return sanitizeVersionString(parts[parts.length - 1]);
+};
+
+exports.getVersionFromTag = getVersionFromTag;
 var getFullGitVersion = function getFullGitVersion() {
-  return getTagFromGit() + '@' + getBuildNumberFromGit();
+  return getVersionFromTag() + '@' + getBuildNumberFromGit();
 };
 
 exports.getFullGitVersion = getFullGitVersion;

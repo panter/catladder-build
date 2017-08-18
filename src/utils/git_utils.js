@@ -7,7 +7,7 @@ export const getBuildNumberFromGit = (factor = 10) => (
 );
 
 export const getTagFromGit = () => (
-  _.trim(execSync('git describe --tags'))
+  _.trim(execSync('git describe --tags --abbrev=0'))
 );
 
 export const sanitizeVersionString = versionString => (
@@ -22,6 +22,6 @@ export const getVersionFromTag = () => {
   return sanitizeVersionString(parts[parts.length - 1]);
 };
 
-export const getFullGitVersion = () => `${getVersionFromTag()}@${getBuildNumberFromGit()}`;
+export const getFullGitVersion = () => `${getVersionFromTag()}-${getBuildNumberFromGit()}`;
 
 export const getFullVersionString = env => `${env}-${getFullGitVersion()}`;

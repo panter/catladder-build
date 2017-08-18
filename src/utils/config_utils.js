@@ -3,14 +3,16 @@ import yaml from 'js-yaml';
 
 import _ from 'lodash';
 
+const CONFIGFILE = '.catladder.yaml';
+
 export const writeConfig = (configFile, config) => {
   const theyaml = yaml.safeDump(config);
   fs.writeFileSync(configFile, theyaml);
 };
-export const readConfig = configFile => yaml.safeLoad(fs.readFileSync(configFile));
+export const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
 
 export const getSshConfig = (configFile, environment) => {
-  const config = readConfig(configFile);
+  const config = readConfig();
   return _.pick(
     config.environments[environment],
     ['host', 'user', 'password', 'key'],

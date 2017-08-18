@@ -2,6 +2,7 @@
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
   "version": "0.5.1",
+  
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",

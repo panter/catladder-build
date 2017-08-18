@@ -8,11 +8,11 @@ import { readConfig, writeConfig } from '../utils/config_utils';
 
 const CONFIGFILE = '.catladder.yaml';
 export default (__, done) => {
-  const configOld = (fs.existsSync(CONFIGFILE) && readConfig(CONFIGFILE)) || {};
+  const configOld = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
   prompt.start();
   prompt.get(initSchema(configOld), (error,
-      configNew,
-    ) => {
+    configNew,
+  ) => {
     const config = {
       ...configOld,
       ...configNew,

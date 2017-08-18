@@ -1,13 +1,9 @@
-import remoteExec from 'ssh-exec';
-
-import { getSshConfig } from '../utils/config_utils';
 import actionTitle from '../ui/action_title';
+import getDeploymentCommand from '../deployments/get_deployment_command';
 
-const CONFIGFILE = '.catladder.yaml';
 
 export default (environment, done) => {
+  const deployCommand = getDeploymentCommand(environment, 'restart');
   actionTitle(`restarting ${environment}`);
-  remoteExec('./bin/nodejs.sh restart', getSshConfig(CONFIGFILE, environment), () => {
-    done(null, 'server restarted');
-  }).pipe(process.stdout);
+  deployCommand(environment, done);
 };

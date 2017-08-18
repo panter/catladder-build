@@ -8,6 +8,17 @@ var _utilsGit_utils = require('../../utils/git_utils');
 
 var _utilsConfig_utils = require('../../utils/config_utils');
 
+/* todo generate dockerfile and pipe in * */
+/*
+const dockerFile = `
+  FROM node:4.8.4
+  ADD build/production/app.tar.gz /app
+  RUN cd /app/bundle/programs/server && npm install
+  WORKDIR /app/bundle
+  EXPOSE 8888
+  CMD ["node", "main.js"]
+` */
+
 exports['default'] = function (environment, done) {
   var _readConfig = (0, _utilsConfig_utils.readConfig)();
 

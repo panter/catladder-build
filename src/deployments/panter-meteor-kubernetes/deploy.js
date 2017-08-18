@@ -1,6 +1,15 @@
 import { getFullVersionString } from '../../utils/git_utils';
 import { readConfig } from '../../utils/config_utils';
-
+/* todo generate dockerfile and pipe in * */
+/*
+const dockerFile = `
+  FROM node:4.8.4
+  ADD build/production/app.tar.gz /app
+  RUN cd /app/bundle/programs/server && npm install
+  WORKDIR /app/bundle
+  EXPOSE 8888
+  CMD ["node", "main.js"]
+` */
 export default (environment, done) => {
   const { appname = 'unknown app' } = readConfig();
   console.log('would do the following if implemented: ');

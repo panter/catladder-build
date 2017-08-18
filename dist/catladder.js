@@ -42,7 +42,7 @@ var _options$_ = _slicedToArray(options._, 2);
 var commandRaw = _options$_[0];
 var environment = _options$_[1];
 
-var command = commandRaw && (0, _camelcase2['default'])(commandRaw);
+var command = options.v ? 'version' : commandRaw && (0, _camelcase2['default'])(commandRaw);
 
 // show intro
 (0, _uiIntro2['default'])();
@@ -56,7 +56,7 @@ var done = function done(error, message) {
 };
 
 if (commands[command]) {
-  if (command !== 'init' && !environment) {
+  if (command !== 'init' && command !== 'version' && !environment) {
     (0, _uiDone_error2['default'])(null, 'please specify an environment');
   } else {
     try {

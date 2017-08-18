@@ -1,6 +1,6 @@
 import printYellow from './print_yellow';
 
-export default (message) => {
+export default (message = '') => {
   printYellow('');
   printYellow('');
   printYellow('╗');

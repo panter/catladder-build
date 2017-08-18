@@ -24,8 +24,13 @@ var getTagFromGit = function getTagFromGit() {
 };
 
 exports.getTagFromGit = getTagFromGit;
+var getFullGitVersion = function getFullGitVersion() {
+  return getTagFromGit() + '@' + getBuildNumberFromGit();
+};
+
+exports.getFullGitVersion = getFullGitVersion;
 var getFullVersionString = function getFullVersionString(env) {
-  return env + '-' + getTagFromGit() + '@' + getBuildNumberFromGit();
+  return env + '-' + getFullGitVersion();
 };
 exports.getFullVersionString = getFullVersionString;
 //# sourceMappingURL=git_utils.js.map

@@ -10,7 +10,9 @@ var _print_yellow = require('./print_yellow');
 
 var _print_yellow2 = _interopRequireDefault(_print_yellow);
 
-exports['default'] = function (message) {
+exports['default'] = function () {
+  var message = arguments.length <= 0 || arguments[0] === undefined ? '' : arguments[0];
+
   (0, _print_yellow2['default'])('');
   (0, _print_yellow2['default'])('');
   (0, _print_yellow2['default'])('╗');

@@ -8,6 +8,7 @@ import iosRevealProject from './ios_reveal_project';
 import restart from './restart';
 import setup from './setup';
 import uploadServer from './upload_server';
+import version from './version';
 
 export {
   init,
@@ -21,4 +22,5 @@ export {
   androidInit,
   uploadServer,
   deploy,
+  version,
 };

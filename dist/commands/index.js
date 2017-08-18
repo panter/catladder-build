@@ -44,6 +44,10 @@ var _upload_server = require('./upload_server');
 
 var _upload_server2 = _interopRequireDefault(_upload_server);
 
+var _version = require('./version');
+
+var _version2 = _interopRequireDefault(_version);
+
 exports.init = _init2['default'];
 exports.setup = _setup2['default'];
 exports.editEnv = _edit_env2['default'];
@@ -55,4 +59,5 @@ exports.androidPrepareForStore = _buildAndroid_build.androidPrepareForStore;
 exports.androidInit = _buildAndroid_build.androidInit;
 exports.uploadServer = _upload_server2['default'];
 exports.deploy = _deploy2['default'];
+exports.version = _version2['default'];
 //# sourceMappingURL=index.js.map

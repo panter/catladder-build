@@ -18,9 +18,9 @@ var _minimist = require('minimist');
 
 var _minimist2 = _interopRequireDefault(_minimist);
 
-var _actions = require('./actions');
+var _commands = require('./commands');
 
-var actions = _interopRequireWildcard(_actions);
+var commands = _interopRequireWildcard(_commands);
 
 var _uiDone_error = require('./ui/done_error');
 
@@ -55,12 +55,12 @@ var done = function done(error, message) {
   }
 };
 
-if (actions[command]) {
+if (commands[command]) {
   if (command !== 'init' && !environment) {
     (0, _uiDone_error2['default'])(null, 'please specify an environment');
   } else {
     try {
-      actions[command](environment, done);
+      commands[command](environment, done);
     } catch (e) {
       done(e, 'command failed');
     }
@@ -68,7 +68,7 @@ if (actions[command]) {
 } else {
   console.log('available commands: ');
   console.log('');
-  console.log(_lodash2['default'].keys(actions).join('\n'));
+  console.log(_lodash2['default'].keys(commands).join('\n'));
   done();
 }
 //# sourceMappingURL=catladder.js.map

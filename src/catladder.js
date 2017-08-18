@@ -2,7 +2,7 @@ import _ from 'lodash';
 import camelCase from 'camelcase';
 import minimist from 'minimist';
 
-import * as actions from './actions';
+import * as commands from './commands';
 import doneError from './ui/done_error';
 import doneSuccess from './ui/done_success';
 import intro from './ui/intro';
@@ -24,12 +24,12 @@ const done = (error, message) => {
   }
 };
 
-if (actions[command]) {
+if (commands[command]) {
   if (command !== 'init' && !environment) {
     doneError(null, 'please specify an environment');
   } else {
     try {
-      actions[command](environment, done);
+      commands[command](environment, done);
     } catch (e) {
       done(e, 'command failed');
     }
@@ -37,6 +37,6 @@ if (actions[command]) {
 } else {
   console.log('available commands: ');
   console.log('');
-  console.log(_.keys(actions).join('\n'));
+  console.log(_.keys(commands).join('\n'));
   done();
 }

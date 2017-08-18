@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/commands/version.js"],"names":[],"mappings":";;;;;;2BAAwB,oBAAoB;;qBAE7B,UAAC,EAAE,EAAE,IAAI,EAAK;AAC3B,MAAI,CAAC,IAAI,8CAAiC,CAAC;CAC5C","file":"version.js","sourcesContent":["import { version } from '../../package.json';\n\nexport default (__, done) => {\n  done(null, `catladder version ${version}`);\n};\n"]}

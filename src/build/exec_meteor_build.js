@@ -15,8 +15,8 @@ export default ({ config, environment, additionalBuildEnv = {} }, args = []) => 
   const { buildEnv = {} } = envConf;
   const buildEnvWithAppVersions = {
     ...additionalBuildEnv,
-    CORDOVA_APP_BUILD_NUMBER: getBuildNumberFromGit(),
-    CORDOVA_APP_VERSION: getTagFromGit(),
+    BUILD_NUMBER: getBuildNumberFromGit(),
+    VERSION_TAG: getTagFromGit(),
     ...buildEnv,
   };
   const buildEnvString = _.map(buildEnvWithAppVersions, (value, key) => `${key}='${value}'`).join(' ');

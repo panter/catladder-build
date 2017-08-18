@@ -38,8 +38,8 @@ exports['default'] = function (_ref2) {
   var buildEnv = _envConf$buildEnv === undefined ? {} : _envConf$buildEnv;
 
   var buildEnvWithAppVersions = _extends({}, additionalBuildEnv, {
-    CORDOVA_APP_BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
-    CORDOVA_APP_VERSION: (0, _utilsGit_utils.getTagFromGit)()
+    BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
+    VERSION_TAG: (0, _utilsGit_utils.getTagFromGit)()
   }, buildEnv);
   var buildEnvString = _lodash2['default'].map(buildEnvWithAppVersions, function (value, key) {
     return key + '=\'' + value + '\'';

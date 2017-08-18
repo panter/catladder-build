@@ -14,24 +14,18 @@
     "window": true
   },
   "plugins": [
-    "meteor",
-    "react"
   ],
   "extends": [
-    "airbnb",
-    "plugin:meteor/recommended",
-    "plugin:react/recommended"
+    "airbnb-base",
   ],
   "rules": {
     "no-console": 0,
     "global-require": 0,
     "arrow-body-style": [1, "as-needed"],
     "no-underscore-dangle": 0,
-    "react/prop-types": 0,
     "consistent-return": 0,
     "import/no-unresolved": 0,
     "import/extensions": 0,
     "import/no-extraneous-dependencies": 0,
-    "react/jsx-filename-extension": 0
   }
 }

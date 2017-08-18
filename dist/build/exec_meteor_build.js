@@ -38,8 +38,9 @@ exports['default'] = function (_ref2) {
   var buildEnv = _envConf$buildEnv === undefined ? {} : _envConf$buildEnv;
 
   var buildEnvWithAppVersions = _extends({}, additionalBuildEnv, {
-    BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
-    VERSION_TAG: (0, _utilsGit_utils.getTagFromGit)()
+    VERSION_BUILD_NUMBER: (0, _utilsGit_utils.getBuildNumberFromGit)(),
+    VERSION_TAG: (0, _utilsGit_utils.getTagFromGit)(),
+    VERSION_FULL_STRING: (0, _utilsGit_utils.getFullVersionString)(environment)
   }, buildEnv);
   var buildEnvString = _lodash2['default'].map(buildEnvWithAppVersions, function (value, key) {
     return key + '=\'' + value + '\'';

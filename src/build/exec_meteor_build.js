@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { execSync } from 'child_process';
 import { getBuildDir } from '../configs/directories';
-import { getBuildNumberFromGit, getTagFromGit } from '../utils/git_utils';
+import { getBuildNumberFromGit, getTagFromGit, getFullVersionString } from '../utils/git_utils';
 
 const execInstallNpmModules = ({ config }) => {
   execSync(`meteor ${config.useYarn ? 'yarn' : 'npm'} install`, { cwd: config.appDir, stdio: 'inherit' });
@@ -15,8 +15,9 @@ export default ({ config, environment, additionalBuildEnv = {} }, args = []) => 
   const { buildEnv = {} } = envConf;
   const buildEnvWithAppVersions = {
     ...additionalBuildEnv,
-    BUILD_NUMBER: getBuildNumberFromGit(),
+    VERSION_BUILD_NUMBER: getBuildNumberFromGit(),
     VERSION_TAG: getTagFromGit(),
+    VERSION_FULL_STRING: getFullVersionString(environment),
     ...buildEnv,
   };
   const buildEnvString = _.map(buildEnvWithAppVersions, (value, key) => `${key}='${value}'`).join(' ');

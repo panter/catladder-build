@@ -20,7 +20,7 @@ var CONFIGFILE = '.catladder.yaml';
 
 exports['default'] = function (environment, done) {
   (0, _uiAction_title2['default'])('restarting ' + environment);
-  (0, _sshExec2['default'])('./bin/nodejs.sh restart', (0, _utilsConfig_utils.getSshConfig)(CONFIGFILE, environment), function () {
+  (0, _sshExec2['default'])('./bin/multi_nodejs.sh restart', (0, _utilsConfig_utils.getSshConfig)(CONFIGFILE, environment), function () {
     done(null, 'server restarted');
   }).pipe(process.stdout);
 };

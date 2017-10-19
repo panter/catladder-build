@@ -19,7 +19,14 @@ var _configsDirectories = require('../configs/directories');
 var execInstallNpmModules = function execInstallNpmModules(_ref) {
   var config = _ref.config;
 
-  (0, _child_process.execSync)('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', { cwd: config.appDir, stdio: 'inherit' });
+  if (config.useYarn) {
+    // install yarn if not available on meteor
+    (0, _child_process.execSync)('meteor npm install -g yarn');
+  }
+  (0, _child_process.execSync)('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', {
+    cwd: config.appDir,
+    stdio: 'inherit'
+  });
 };
 
 exports['default'] = function (_ref2) {
@@ -40,7 +47,10 @@ exports['default'] = function (_ref2) {
     return key + '=\'' + value + '\'';
   }).join(' ');
   execInstallNpmModules({ config: config });
-  (0, _child_process.execSync)(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, { cwd: config.appDir, stdio: 'inherit' });
+  (0, _child_process.execSync)(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, {
+    cwd: config.appDir,
+    stdio: 'inherit'
+  });
 };
 
 module.exports = exports['default'];

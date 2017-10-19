@@ -10,13 +10,13 @@ var _push = require('./push');
 
 var _push2 = _interopRequireDefault(_push);
 
-var _restart = require('./restart');
+var _deploy = require('./deploy');
 
-var _restart2 = _interopRequireDefault(_restart);
+var _deploy2 = _interopRequireDefault(_deploy);
 
 exports['default'] = {
   push: _push2['default'],
-  restart: _restart2['default']
+  deploy: _deploy2['default']
 };
 module.exports = exports['default'];
 //# sourceMappingURL=index.js.map

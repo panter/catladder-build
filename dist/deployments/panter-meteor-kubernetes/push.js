@@ -24,6 +24,14 @@ var _utilsConfig_utils = require('../../utils/config_utils');
 
 var _utilsPass_utils = require('../../utils/pass_utils');
 
+var _uiAction_title = require('../../ui/action_title');
+
+var _uiAction_title2 = _interopRequireDefault(_uiAction_title);
+
+var _uiPrint_command = require('../../ui/print_command');
+
+var _uiPrint_command2 = _interopRequireDefault(_uiPrint_command);
+
 var createDockerFile = function createDockerFile(_ref) {
   var config = _ref.config;
   var environment = _ref.environment;
@@ -44,11 +52,17 @@ const dockerFile = `
 ` */
 
 var exec = function exec(cmd) {
-  console.log(cmd);
-  (0, _child_process.execSync)(cmd, { stdio: 'inherit' });
+  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  (0, _uiPrint_command2['default'])(cmd);
+  (0, _child_process.execSync)(cmd, _extends({ stdio: 'inherit' }, options));
+};
+var sanitizeKubeValue = function sanitizeKubeValue(value) {
+  return (0, _lodash.isObject)(value) ? JSON.stringify(value) : (0, _lodash.toString)(value);
 };
 
 exports['default'] = function (environment, done) {
+  (0, _uiAction_title2['default'])('  🎶    👊   push it real good ! 👊   🎶   ' + environment + ' 🎶 ');
   var config = (0, _utilsConfig_utils.readConfig)();
   var passPathForEnvVars = (0, _configsDirectories.passEnvFile)({ config: config, environment: environment });
   var passEnv = (0, _utilsPass_utils.readPassYaml)(passPathForEnvVars);
@@ -84,18 +98,17 @@ exports['default'] = function (environment, done) {
     var fullEnv = _extends({}, passEnv, {
       ROOT_URL: url
     }, commonDeploymentEnv, deploymentEnv);
+
+    var kubeEnv = (0, _lodash.map)(fullEnv, function (value, name) {
+      return { name: name, value: sanitizeKubeValue(value) };
+    });
     var yaml = compiled({
       image: fullImageName,
-      env: JSON.stringify(fullEnv)
+      env: JSON.stringify(kubeEnv)
     });
-    console.log('would apply');
-    console.log(yaml);
+    console.log('apply', yaml);
+    exec('kubectl apply -f -', { input: yaml, stdio: ['pipe', 1, 2] });
   });
-
-  console.log('generate or adjust: kube/' + environment + '/deployment.' + appname + '_worker.yml (add tag ' + versionTag + ')');
-  console.log('generate or adjust: kube/' + environment + '/deployment.' + appname + '_web.yml (add tag ' + versionTag + ')');
-  console.log('kubectl apply -f kube/' + environment + '/deployment.' + appname + '_worker.yml');
-  console.log('kubectl apply -f kube/' + environment + '/deployment.' + appname + '_web.yml');
   done(null, 'done');
 };
 

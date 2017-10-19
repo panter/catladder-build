@@ -1,12 +1,14 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-import { template } from 'lodash';
+import { template, map, isObject, toString } from 'lodash';
 
 import { getBuildDir, getBuildDirDockerFile, passEnvFile } from '../../configs/directories';
 import { getFullVersionString } from '../../utils/git_utils';
 import { readConfig } from '../../utils/config_utils';
 import { readPassYaml } from '../../utils/pass_utils';
+import actionTitle from '../../ui/action_title';
+import printCommand from '../../ui/print_command';
 
 const createDockerFile = ({ config, environment }) => {
   const dockerFile = getBuildDirDockerFile({ config, environment });
@@ -34,11 +36,14 @@ const dockerFile = `
   CMD ["node", "main.js"]
 ` */
 
-const exec = (cmd) => {
-  console.log(cmd);
-  execSync(cmd, { stdio: 'inherit' });
+const exec = (cmd, options = {}) => {
+  printCommand(cmd);
+  execSync(cmd, { stdio: 'inherit', ...options });
 };
+const sanitizeKubeValue = value => (isObject(value) ? JSON.stringify(value) : toString(value));
+
 export default (environment, done) => {
+  actionTitle(`  🎶    👊   push it real good ! 👊   🎶   ${environment} 🎶 `);
   const config = readConfig();
   const passPathForEnvVars = passEnvFile({ config, environment });
   const passEnv = readPassYaml(passPathForEnvVars);
@@ -69,21 +74,14 @@ export default (environment, done) => {
       ...commonDeploymentEnv,
       ...deploymentEnv,
     };
+
+    const kubeEnv = map(fullEnv, (value, name) => ({ name, value: sanitizeKubeValue(value) }));
     const yaml = compiled({
       image: fullImageName,
-      env: JSON.stringify(fullEnv),
+      env: JSON.stringify(kubeEnv),
     });
-    console.log('would apply');
-    console.log(yaml);
+    console.log('apply', yaml);
+    exec('kubectl apply -f -', { input: yaml, stdio: ['pipe', 1, 2] });
   });
-
-  console.log(
-    `generate or adjust: kube/${environment}/deployment.${appname}_worker.yml (add tag ${versionTag})`,
-  );
-  console.log(
-    `generate or adjust: kube/${environment}/deployment.${appname}_web.yml (add tag ${versionTag})`,
-  );
-  console.log(`kubectl apply -f kube/${environment}/deployment.${appname}_worker.yml`);
-  console.log(`kubectl apply -f kube/${environment}/deployment.${appname}_web.yml`);
   done(null, 'done');
 };

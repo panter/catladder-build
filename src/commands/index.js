@@ -6,14 +6,14 @@ import editEnv from './edit_env';
 import init from './init';
 import iosRevealProject from './ios_reveal_project';
 import restart from './restart';
-import setup from './setup';
+import config from './config';
 import deploy from './deploy';
 import deployPush from './deploy_push';
 import version from './version';
 
 export {
   init,
-  setup,
+  config,
   editEnv,
   restart,
   buildServer,

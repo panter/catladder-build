@@ -1,4 +1,4 @@
-import _ from 'lodash';
+environmentSchemaimport _ from 'lodash';
 import prompt from 'prompt';
 
 
@@ -54,13 +54,13 @@ export const initSchema = config => withDefaults({
 export const environmentSchema = ({ environment, appname, ...config }) => withDefaults({
   properties: {
     host: {
-      description: 'ssh host',
+      description: 'ssh host (deprecated, only for classic hosting)',
       type: 'string',
       required: true,
       default: `${appname}-${environment}.panter.biz`,
     },
     user: {
-      description: 'ssh user',
+      description: 'ssh user (deprecated, only for classic hosting)',
       default: 'app',
     },
     url: {

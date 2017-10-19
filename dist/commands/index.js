@@ -32,9 +32,9 @@ var _restart = require('./restart');
 
 var _restart2 = _interopRequireDefault(_restart);
 
-var _setup = require('./setup');
+var _config = require('./config');
 
-var _setup2 = _interopRequireDefault(_setup);
+var _config2 = _interopRequireDefault(_config);
 
 var _deploy = require('./deploy');
 
@@ -49,7 +49,7 @@ var _version = require('./version');
 var _version2 = _interopRequireDefault(_version);
 
 exports.init = _init2['default'];
-exports.setup = _setup2['default'];
+exports.config = _config2['default'];
 exports.editEnv = _edit_env2['default'];
 exports.restart = _restart2['default'];
 exports.buildServer = _build_server2['default'];

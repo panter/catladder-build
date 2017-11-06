@@ -56,6 +56,16 @@ var createDockerFile = function createDockerFile(_ref) {
   }
   return dockerFile;
 };
+/* todo generate dockerfile and pipe in * */
+/*
+const dockerFile = `
+  FROM node:4.8.4
+  ADD build/production/app.tar.gz /app
+  RUN cd /app/bundle/programs/server && npm install
+  WORKDIR /app/bundle
+  EXPOSE 8888
+  CMD ["node", "main.js"]
+` */
 
 var exec = function exec(cmd) {
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];

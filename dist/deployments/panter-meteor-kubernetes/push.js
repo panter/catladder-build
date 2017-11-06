@@ -14,6 +14,10 @@ var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
 
+var _fsExtra = require('fs-extra');
+
+var _fsExtra2 = _interopRequireDefault(_fsExtra);
+
 var _lodash = require('lodash');
 
 var _configsDirectories = require('../../configs/directories');
@@ -32,24 +36,26 @@ var _uiPrint_command = require('../../ui/print_command');
 
 var _uiPrint_command2 = _interopRequireDefault(_uiPrint_command);
 
+var copyExistingDockerfile = function copyExistingDockerfile(destination) {
+  try {
+    _fsExtra2['default'].copySync('./Dockerfile', destination);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 var createDockerFile = function createDockerFile(_ref) {
   var config = _ref.config;
   var environment = _ref.environment;
 
   var dockerFile = (0, _configsDirectories.getBuildDirDockerFile)({ config: config, environment: environment });
-  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:4.8.4\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
+  if (_fs2['default'].existsSync('./Dockerfile')) {
+    copyExistingDockerfile(dockerFile);
+  } else {
+    _fs2['default'].writeFileSync(dockerFile, '\n        FROM node:4.8.4\n        ADD app.tar.gz /app\n        RUN cd /app/bundle/programs/server && npm install\n        WORKDIR /app/bundle\n        EXPOSE 8888\n        CMD ["node", "main.js"]\n  ');
+  }
   return dockerFile;
 };
-/* todo generate dockerfile and pipe in * */
-/*
-const dockerFile = `
-  FROM node:4.8.4
-  ADD build/production/app.tar.gz /app
-  RUN cd /app/bundle/programs/server && npm install
-  WORKDIR /app/bundle
-  EXPOSE 8888
-  CMD ["node", "main.js"]
-` */
 
 var exec = function exec(cmd) {
   var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];

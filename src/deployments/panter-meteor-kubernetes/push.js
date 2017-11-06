@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
+import fse from 'fs-extra';
 
 import { template, map, isObject, toString } from 'lodash';
 
@@ -10,19 +11,32 @@ import { readPassYaml } from '../../utils/pass_utils';
 import actionTitle from '../../ui/action_title';
 import printCommand from '../../ui/print_command';
 
+
+const copyExistingDockerfile = (destination) => {
+  try {
+    fse.copySync('./Dockerfile', destination);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 const createDockerFile = ({ config, environment }) => {
   const dockerFile = getBuildDirDockerFile({ config, environment });
-  fs.writeFileSync(
-    dockerFile,
-    `
-FROM node:4.8.4
-ADD app.tar.gz /app
-RUN cd /app/bundle/programs/server && npm install
-WORKDIR /app/bundle
-EXPOSE 8888
-CMD ["node", "main.js"]
+  if (fs.existsSync('./Dockerfile')) {
+    copyExistingDockerfile(dockerFile);
+  } else {
+    fs.writeFileSync(
+      dockerFile,
+      `
+        FROM node:4.8.4
+        ADD app.tar.gz /app
+        RUN cd /app/bundle/programs/server && npm install
+        WORKDIR /app/bundle
+        EXPOSE 8888
+        CMD ["node", "main.js"]
   `,
-  );
+    );
+  }
   return dockerFile;
 };
 /* todo generate dockerfile and pipe in * */

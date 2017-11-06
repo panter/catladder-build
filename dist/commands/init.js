@@ -27,7 +27,7 @@ var _utilsConfig_utils = require('../utils/config_utils');
 var CONFIGFILE = '.catladder.yaml';
 
 exports['default'] = function (__, done) {
-  var configOld = _fs2['default'].existsSync(CONFIGFILE) && (0, _utilsConfig_utils.readConfig)(CONFIGFILE) || {};
+  var configOld = _fs2['default'].existsSync(CONFIGFILE) && (0, _utilsConfig_utils.readConfig)() || {};
   _prompt2['default'].start();
   _prompt2['default'].get((0, _configsPrompt_schemas.initSchema)(configOld), function (error, configNew) {
     var config = _extends({}, configOld, configNew);

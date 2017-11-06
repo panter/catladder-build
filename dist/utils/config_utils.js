@@ -18,18 +18,20 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var CONFIGFILE = '.catladder.yaml';
+
 var writeConfig = function writeConfig(configFile, config) {
   var theyaml = _jsYaml2['default'].safeDump(config);
   _fs2['default'].writeFileSync(configFile, theyaml);
 };
 exports.writeConfig = writeConfig;
-var readConfig = function readConfig(configFile) {
-  return _jsYaml2['default'].safeLoad(_fs2['default'].readFileSync(configFile));
+var readConfig = function readConfig() {
+  return _jsYaml2['default'].safeLoad(_fs2['default'].readFileSync(CONFIGFILE));
 };
 
 exports.readConfig = readConfig;
 var getSshConfig = function getSshConfig(configFile, environment) {
-  var config = readConfig(configFile);
+  var config = readConfig();
   return _lodash2['default'].pick(config.environments[environment], ['host', 'user', 'password', 'key']);
 };
 

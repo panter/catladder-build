@@ -18,11 +18,9 @@ import androidPrepareForStore from './android_prepare_for_store';
 import execMeteorBuild from '../build/exec_meteor_build';
 import iosRevealProject from './ios_reveal_project';
 
-const CONFIGFILE = '.catladder.yaml';
-
 
 export default (environment, done) => {
-  const config = readConfig(CONFIGFILE);
+  const config = readConfig();
   const buildDir = getBuildDir({ config, environment });
   actionTitle(`building mobile apps ${getFullVersionString(environment)}`);
   console.log(`build dir: ${buildDir}`);

@@ -18,10 +18,8 @@ var _buildExec_meteor_build2 = _interopRequireDefault(_buildExec_meteor_build);
 
 var _utilsGit_utils = require('../utils/git_utils');
 
-var CONFIGFILE = '.catladder.yaml';
-
 exports['default'] = function (environment, done) {
-  var config = (0, _utilsConfig_utils.readConfig)(CONFIGFILE);
+  var config = (0, _utilsConfig_utils.readConfig)();
   // read build params
   (0, _uiAction_title2['default'])('building server ' + (0, _utilsGit_utils.getFullVersionString)(environment));
   (0, _buildExec_meteor_build2['default'])({ config: config, environment: environment }, ['--server-only']);

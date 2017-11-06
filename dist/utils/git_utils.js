@@ -20,7 +20,7 @@ var getBuildNumberFromGit = function getBuildNumberFromGit() {
 
 exports.getBuildNumberFromGit = getBuildNumberFromGit;
 var getTagFromGit = function getTagFromGit() {
-  return _lodash2['default'].trim((0, _child_process.execSync)('git describe --tags'));
+  return _lodash2['default'].trim((0, _child_process.execSync)('git describe --tags --abbrev=0'));
 };
 
 exports.getTagFromGit = getTagFromGit;
@@ -39,7 +39,7 @@ var getVersionFromTag = function getVersionFromTag() {
 
 exports.getVersionFromTag = getVersionFromTag;
 var getFullGitVersion = function getFullGitVersion() {
-  return getVersionFromTag() + '@' + getBuildNumberFromGit();
+  return getVersionFromTag() + '-' + getBuildNumberFromGit();
 };
 
 exports.getFullGitVersion = getFullGitVersion;

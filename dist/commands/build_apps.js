@@ -38,10 +38,8 @@ var _ios_reveal_project = require('./ios_reveal_project');
 
 var _ios_reveal_project2 = _interopRequireDefault(_ios_reveal_project);
 
-var CONFIGFILE = '.catladder.yaml';
-
 exports['default'] = function (environment, done) {
-  var config = (0, _utilsConfig_utils.readConfig)(CONFIGFILE);
+  var config = (0, _utilsConfig_utils.readConfig)();
   var buildDir = (0, _configsDirectories.getBuildDir)({ config: config, environment: environment });
   (0, _uiAction_title2['default'])('building mobile apps ' + (0, _utilsGit_utils.getFullVersionString)(environment));
   console.log('build dir: ' + buildDir);

@@ -47,7 +47,7 @@ var _configsDefault_env2 = _interopRequireDefault(_configsDefault_env);
 var CONFIGFILE = '.catladder.yaml';
 
 exports['default'] = function (environment, done) {
-  var config = (0, _utilsConfig_utils.readConfig)(CONFIGFILE);
+  var config = (0, _utilsConfig_utils.readConfig)();
   _prompt2['default'].start();
 
   (0, _uiAction_title2['default'])('setting up ' + environment);

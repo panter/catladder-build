@@ -15,7 +15,7 @@ const CONFIGFILE = '.catladder.yaml';
 
 
 export default (environment, done) => {
-  const config = readConfig(CONFIGFILE);
+  const config = readConfig();
   prompt.start();
 
   actionTitle(`setting up ${environment}`);

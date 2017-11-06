@@ -15,10 +15,10 @@ var _deploymentsGet_deployment_command = require('../deployments/get_deployment_
 var _deploymentsGet_deployment_command2 = _interopRequireDefault(_deploymentsGet_deployment_command);
 
 exports['default'] = function (environment, done) {
-  (0, _uiAction_title2['default'])('deploying ' + environment);
-  var command = (0, _deploymentsGet_deployment_command2['default'])(environment, 'deploy');
-  command(environment, done);
+  var deployCommand = (0, _deploymentsGet_deployment_command2['default'])(environment, 'restart');
+  (0, _uiAction_title2['default'])('restarting ' + environment);
+  deployCommand(environment, done);
 };
 
 module.exports = exports['default'];
-//# sourceMappingURL=deploy.js.map
+//# sourceMappingURL=deploy_restart.js.map

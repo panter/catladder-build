@@ -86,13 +86,13 @@ var environmentSchema = function environmentSchema(_ref) {
   return withDefaults({
     properties: {
       host: {
-        description: 'ssh host',
+        description: 'ssh host (deprecated, only for classic hosting)',
         type: 'string',
         required: true,
         'default': appname + '-' + environment + '.panter.biz'
       },
       user: {
-        description: 'ssh user',
+        description: 'ssh user (deprecated, only for classic hosting)',
         'default': 'app'
       },
       url: {

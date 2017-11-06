@@ -1,10 +1,8 @@
 import actionTitle from '../ui/action_title';
-import buildServer from './build_server';
-import uploadServer from './upload_server';
+import getDeploymentCommand from '../deployments/get_deployment_command';
 
 export default (environment, done) => {
   actionTitle(`deploying ${environment}`);
-  buildServer(environment, () => {
-    uploadServer(environment, done);
-  });
+  const command = getDeploymentCommand(environment, 'deploy');
+  command(environment, done);
 };

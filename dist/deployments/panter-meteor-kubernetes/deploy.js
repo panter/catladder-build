@@ -1,43 +1,21 @@
 'use strict';
 
+var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
+
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _utilsGit_utils = require('../../utils/git_utils');
+var _commands = require('../../commands');
 
-var _utilsConfig_utils = require('../../utils/config_utils');
+var _push = require('./push');
 
-/* todo generate dockerfile and pipe in * */
-/*
-const dockerFile = `
-  FROM node:4.8.4
-  ADD build/production/app.tar.gz /app
-  RUN cd /app/bundle/programs/server && npm install
-  WORKDIR /app/bundle
-  EXPOSE 8888
-  CMD ["node", "main.js"]
-` */
+var _push2 = _interopRequireDefault(_push);
 
 exports['default'] = function (environment, done) {
-  var _readConfig = (0, _utilsConfig_utils.readConfig)();
-
-  var _readConfig$appname = _readConfig.appname;
-  var appname = _readConfig$appname === undefined ? 'unknown app' : _readConfig$appname;
-
-  console.log('would do the following if implemented: ');
-  console.log('(but you can do it manually! 😽  )');
-  console.log('  ');
-  console.log('docker build -t ' + appname + ' .');
-  var versionTag = (0, _utilsGit_utils.getFullVersionString)(environment);
-  var fullImageName = 'gcr.io/skynet-164509/' + appname + ':' + versionTag;
-  console.log('docker tag ' + appname + ' ' + fullImageName);
-  console.log('docker push ' + fullImageName);
-  console.log('generate or adjust: kube/' + environment + '/deployment.' + appname + '_worker.yml (add tag ' + versionTag + ')');
-  console.log('generate or adjust: kube/' + environment + '/deployment.' + appname + '_web.yml (add tag ' + versionTag + ')');
-  console.log('kubectl apply -f kube/' + environment + '/deployment.' + appname + '_worker.yml');
-  console.log('kubectl apply -f kube/' + environment + '/deployment.' + appname + '_web.yml');
-  done(null, 'done');
+  (0, _commands.buildServer)(environment, function () {
+    (0, _push2['default'])(environment, done);
+  });
 };
 
 module.exports = exports['default'];

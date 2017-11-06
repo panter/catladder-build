@@ -16,10 +16,6 @@ var _build_server = require('./build_server');
 
 var _build_server2 = _interopRequireDefault(_build_server);
 
-var _deploy = require('./deploy');
-
-var _deploy2 = _interopRequireDefault(_deploy);
-
 var _edit_env = require('./edit_env');
 
 var _edit_env2 = _interopRequireDefault(_edit_env);
@@ -36,20 +32,24 @@ var _restart = require('./restart');
 
 var _restart2 = _interopRequireDefault(_restart);
 
-var _setup = require('./setup');
+var _config = require('./config');
 
-var _setup2 = _interopRequireDefault(_setup);
+var _config2 = _interopRequireDefault(_config);
 
-var _upload_server = require('./upload_server');
+var _deploy = require('./deploy');
 
-var _upload_server2 = _interopRequireDefault(_upload_server);
+var _deploy2 = _interopRequireDefault(_deploy);
+
+var _deploy_push = require('./deploy_push');
+
+var _deploy_push2 = _interopRequireDefault(_deploy_push);
 
 var _version = require('./version');
 
 var _version2 = _interopRequireDefault(_version);
 
 exports.init = _init2['default'];
-exports.setup = _setup2['default'];
+exports.config = _config2['default'];
 exports.editEnv = _edit_env2['default'];
 exports.restart = _restart2['default'];
 exports.buildServer = _build_server2['default'];
@@ -57,7 +57,7 @@ exports.buildApps = _build_apps2['default'];
 exports.iosRevealProject = _ios_reveal_project2['default'];
 exports.androidPrepareForStore = _buildAndroid_build.androidPrepareForStore;
 exports.androidInit = _buildAndroid_build.androidInit;
-exports.uploadServer = _upload_server2['default'];
+exports.deployPush = _deploy_push2['default'];
 exports.deploy = _deploy2['default'];
 exports.version = _version2['default'];
 //# sourceMappingURL=index.js.map

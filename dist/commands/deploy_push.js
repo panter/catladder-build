@@ -6,19 +6,14 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _uiAction_title = require('../ui/action_title');
-
-var _uiAction_title2 = _interopRequireDefault(_uiAction_title);
-
 var _deploymentsGet_deployment_command = require('../deployments/get_deployment_command');
 
 var _deploymentsGet_deployment_command2 = _interopRequireDefault(_deploymentsGet_deployment_command);
 
 exports['default'] = function (environment, done) {
-  (0, _uiAction_title2['default'])('deploying ' + environment);
-  var command = (0, _deploymentsGet_deployment_command2['default'])(environment, 'deploy');
+  var command = (0, _deploymentsGet_deployment_command2['default'])(environment, 'push');
   command(environment, done);
 };
 
 module.exports = exports['default'];
-//# sourceMappingURL=deploy.js.map
+//# sourceMappingURL=deploy_push.js.map

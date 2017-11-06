@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/ui/print_command.js"],"names":[],"mappings":";;;;;;;;0BAAmB,aAAa;;;;qBAEjB,UAAA,IAAI;SAAI,OAAO,CAAC,GAAG,CAAC,wBAAO,KAAK,QAAM,IAAI,CAAG,CAAC;CAAA","file":"print_command.js","sourcesContent":["import colors from 'colors/safe';\n\nexport default line => console.log(colors.green(`$ ${line}`));\n"]}

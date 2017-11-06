@@ -1,18 +1,19 @@
 import { androidInit, androidPrepareForStore } from '../build/android_build';
 import buildApps from './build_apps';
 import buildServer from './build_server';
-import deploy from './deploy';
+
 import editEnv from './edit_env';
 import init from './init';
 import iosRevealProject from './ios_reveal_project';
 import restart from './restart';
-import setup from './setup';
-import uploadServer from './upload_server';
+import config from './config';
+import deploy from './deploy';
+import deployPush from './deploy_push';
 import version from './version';
 
 export {
   init,
-  setup,
+  config,
   editEnv,
   restart,
   buildServer,
@@ -20,7 +21,7 @@ export {
   iosRevealProject,
   androidPrepareForStore,
   androidInit,
-  uploadServer,
+  deployPush,
   deploy,
   version,
 };

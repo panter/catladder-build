@@ -1,7 +1,7 @@
+import push from './push';
 import deploy from './deploy';
-import restart from './restart';
 
 export default {
+  push,
   deploy,
-  restart,
 };

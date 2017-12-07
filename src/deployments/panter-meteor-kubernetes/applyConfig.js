@@ -3,7 +3,7 @@ import fs from 'fs';
 
 import { template, map, isObject, toString } from 'lodash';
 
-import { getKubernetesImageName } from './libs/utils';
+import { getKubernetesImageNameFromConfig } from './libs/utils';
 import { passEnvFile } from '../../configs/directories';
 import { readConfig } from '../../utils/config_utils';
 import { readPassYaml } from '../../utils/pass_utils';
@@ -18,12 +18,12 @@ const sanitizeKubeValue = value => (isObject(value) ? JSON.stringify(value) : to
 
 export default (environment, done) => {
   actionTitle(`applying kubernetes config ${environment}  💫 `);
-
   const config = readConfig();
+  const imageName = getKubernetesImageNameFromConfig(config, environment);
+  actionTitle(`imageName: ${imageName}`);
+
   const passPathForEnvVars = passEnvFile({ config, environment });
   const passEnv = readPassYaml(passPathForEnvVars);
-
-  const fullImageName = getKubernetesImageName(config, environment);
 
   const {
     url,
@@ -42,7 +42,7 @@ export default (environment, done) => {
 
     const kubeEnv = map(fullEnv, (value, name) => ({ name, value: sanitizeKubeValue(value) }));
     const yaml = compiled({
-      image: fullImageName,
+      image: imageName,
       env: JSON.stringify(kubeEnv),
     });
     console.log('apply', yaml);

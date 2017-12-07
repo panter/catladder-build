@@ -1,8 +1,8 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 
+import { generateKubernetesImageName, writeImageNameToConfig } from './libs/utils';
 import { getBuildDir, getBuildDirDockerFile } from '../../configs/directories';
-import { getKubernetesImageName } from './libs/utils';
 import { readConfig } from '../../utils/config_utils';
 import actionTitle from '../../ui/action_title';
 import applyConfig from './applyConfig';
@@ -42,6 +42,9 @@ const exec = (cmd, options = {}) => {
 export default (environment, done) => {
   actionTitle(`  🎶    👊   push it real good ! 👊   🎶   ${environment} 🎶 `);
   const config = readConfig();
+  const fullImageName = generateKubernetesImageName(config, environment);
+
+  actionTitle(`image ${fullImageName}`);
 
   const { appname = 'unknown app' } = config;
 
@@ -51,7 +54,8 @@ export default (environment, done) => {
 
   exec(dockerBuildCommand);
 
-  const fullImageName = getKubernetesImageName(config, environment);
+  writeImageNameToConfig(config, environment, fullImageName);
+
   exec(`docker tag ${appname} ${fullImageName}`);
   exec(`gcloud docker -- push ${fullImageName}`);
 

@@ -6,13 +6,13 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
+var _lodash = require('lodash');
+
 var _utilsConfig_utils = require('../utils/config_utils');
 
 var _ = require('./');
 
 var _2 = _interopRequireDefault(_);
-
-var _lodash = require('lodash');
 
 exports['default'] = function (environment, command) {
   var config = (0, _utilsConfig_utils.readConfig)();

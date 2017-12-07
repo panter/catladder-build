@@ -18,21 +18,15 @@ var _prompt = require('prompt');
 
 var _prompt2 = _interopRequireDefault(_prompt);
 
-var _sshExec = require('ssh-exec');
-
-var _sshExec2 = _interopRequireDefault(_sshExec);
-
 var _jsYaml = require('js-yaml');
 
 var _jsYaml2 = _interopRequireDefault(_jsYaml);
 
 var _configsPrompt_schemas = require('../configs/prompt_schemas');
 
-var _utilsConfig_utils = require('../utils/config_utils');
-
 var _configsDirectories = require('../configs/directories');
 
-var _packageJson = require('../../package.json');
+var _utilsConfig_utils = require('../utils/config_utils');
 
 var _utilsPass_utils = require('../utils/pass_utils');
 
@@ -43,6 +37,10 @@ var _uiAction_title2 = _interopRequireDefault(_uiAction_title);
 var _configsDefault_env = require('../configs/default_env');
 
 var _configsDefault_env2 = _interopRequireDefault(_configsDefault_env);
+
+var _deploymentsGet_deployment_command = require('../deployments/get_deployment_command');
+
+var _deploymentsGet_deployment_command2 = _interopRequireDefault(_deploymentsGet_deployment_command);
 
 var CONFIGFILE = '.catladder.yaml';
 
@@ -68,20 +66,9 @@ exports['default'] = function (environment, done) {
     }
     // open editor to edit the en vars
     (0, _utilsPass_utils.editPass)(passPathForEnvVars);
-    // load changed envVars and create env.sh on server
-    // we create ROOT_URL always from the config
-    var envSh = (0, _utilsConfig_utils.createEnvSh)({ version: _packageJson.version, environment: environment }, _extends({}, (0, _utilsPass_utils.readPassYaml)(passPathForEnvVars), {
-      ROOT_URL: envConfig.url
-    }));
-    // create env.sh on server
-    (0, _sshExec2['default'])('echo "' + envSh.replace(/"/g, '\\"') + '" > ~/app/env.sh', (0, _utilsConfig_utils.getSshConfig)(CONFIGFILE, environment), function (err) {
-      if (err) {
-        throw err;
-      }
-      console.log('');
-      console.log('~/app/env.sh has ben written on ', envConfig.host);
-      done(null, environment + ' is set up, please restart server');
-    }).pipe(process.stdout);
+
+    var command = (0, _deploymentsGet_deployment_command2['default'])(environment, 'applyConfig');
+    command(environment, done);
   });
 };
 

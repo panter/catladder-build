@@ -2,9 +2,9 @@ import remoteExec from 'ssh-exec';
 
 import { createEnvSh, getSshConfig, readConfig } from '../../utils/config_utils';
 import { passEnvFile } from '../../configs/directories';
-import { readPassYaml } from '../utils/pass_utils';
-import { version } from '../../package.json';
-import actionTitle from '../ui/action_title';
+import { readPassYaml } from '../../utils/pass_utils';
+import { version } from '../../../package.json';
+import actionTitle from '../../ui/action_title';
 
 const CONFIGFILE = '.catladder.yaml';
 export default (environment, done) => {

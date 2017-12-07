@@ -1,15 +1,14 @@
 import _ from 'lodash';
 import prompt from 'prompt';
-import remoteExec from 'ssh-exec';
 import yaml from 'js-yaml';
 
 import { environmentSchema } from '../configs/prompt_schemas';
-import { getSshConfig, readConfig, writeConfig, createEnvSh } from '../utils/config_utils';
 import { passEnvFile } from '../configs/directories';
-import { version } from '../../package.json';
+import { readConfig, writeConfig } from '../utils/config_utils';
 import { writePass, editPass, readPassYaml } from '../utils/pass_utils';
 import actionTitle from '../ui/action_title';
 import defaultEnv from '../configs/default_env';
+import getDeploymentCommand from '../deployments/get_deployment_command';
 
 const CONFIGFILE = '.catladder.yaml';
 
@@ -41,5 +40,8 @@ export default (environment, done) => {
     }
     // open editor to edit the en vars
     editPass(passPathForEnvVars);
+
+    const command = getDeploymentCommand(environment, 'applyConfig');
+    command(environment, done);
   });
 };

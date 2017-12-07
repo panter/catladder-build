@@ -13,7 +13,6 @@ import defaultEnv from '../configs/default_env';
 
 const CONFIGFILE = '.catladder.yaml';
 
-
 export default (environment, done) => {
   const config = readConfig();
   prompt.start();
@@ -42,23 +41,5 @@ export default (environment, done) => {
     }
     // open editor to edit the en vars
     editPass(passPathForEnvVars);
-    // load changed envVars and create env.sh on server
-    // we create ROOT_URL always from the config
-    const envSh = createEnvSh(
-      { version, environment },
-      {
-        ...readPassYaml(passPathForEnvVars),
-        ROOT_URL: envConfig.url,
-      },
-    );
-    // create env.sh on server
-    remoteExec(`echo "${envSh.replace(/"/g, '\\"')}" > ~/app/env.sh`, getSshConfig(CONFIGFILE, environment), (err) => {
-      if (err) {
-        throw err;
-      }
-      console.log('');
-      console.log('~/app/env.sh has ben written on ', envConfig.host);
-      done(null, `${environment} is set up, please restart server`);
-    }).pipe(process.stdout);
   });
 };

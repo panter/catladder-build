@@ -1,13 +1,11 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-import { template, map, isObject, toString } from 'lodash';
-
-import { getBuildDir, getBuildDirDockerFile, passEnvFile } from '../../configs/directories';
-import { getFullVersionString } from '../../utils/git_utils';
+import { getBuildDir, getBuildDirDockerFile } from '../../configs/directories';
+import { getKubernetesImageName } from './libs/utils';
 import { readConfig } from '../../utils/config_utils';
-import { readPassYaml } from '../../utils/pass_utils';
 import actionTitle from '../../ui/action_title';
+import applyConfig from './applyConfig';
 import printCommand from '../../ui/print_command';
 
 const createDockerFile = ({ config, environment }) => {
@@ -40,14 +38,12 @@ const exec = (cmd, options = {}) => {
   printCommand(cmd);
   execSync(cmd, { stdio: 'inherit', ...options });
 };
-const sanitizeKubeValue = value => (isObject(value) ? JSON.stringify(value) : toString(value));
 
 export default (environment, done) => {
   actionTitle(`  🎶    👊   push it real good ! 👊   🎶   ${environment} 🎶 `);
   const config = readConfig();
-  const passPathForEnvVars = passEnvFile({ config, environment });
-  const passEnv = readPassYaml(passPathForEnvVars);
-  const { dockerEndPoint = 'gcr.io/skynet-164509', appname = 'unknown app' } = config;
+
+  const { appname = 'unknown app' } = config;
 
   const dockerFile = createDockerFile({ config, environment });
   const buildDir = getBuildDir({ environment, config });
@@ -55,33 +51,9 @@ export default (environment, done) => {
 
   exec(dockerBuildCommand);
 
-  const versionTag = getFullVersionString(environment);
-  const fullImageName = `${dockerEndPoint}/${appname}:${versionTag}`;
+  const fullImageName = getKubernetesImageName(config, environment);
   exec(`docker tag ${appname} ${fullImageName}`);
   exec(`gcloud docker -- push ${fullImageName}`);
 
-  const {
-    url,
-    deployment: { env: commonDeploymentEnv, kubeDeployments = [] },
-  } = config.environments[environment];
-
-  kubeDeployments.forEach((deployment) => {
-    const { file, env: deploymentEnv = {} } = deployment;
-    const compiled = template(fs.readFileSync(file));
-    const fullEnv = {
-      ...passEnv,
-      ROOT_URL: url,
-      ...commonDeploymentEnv,
-      ...deploymentEnv,
-    };
-
-    const kubeEnv = map(fullEnv, (value, name) => ({ name, value: sanitizeKubeValue(value) }));
-    const yaml = compiled({
-      image: fullImageName,
-      env: JSON.stringify(kubeEnv),
-    });
-    console.log('apply', yaml);
-    exec('kubectl apply -f -', { input: yaml, stdio: ['pipe', 1, 2] });
-  });
-  done(null, 'done');
+  applyConfig(environment, done);
 };

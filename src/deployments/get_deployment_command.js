@@ -1,6 +1,7 @@
+import { keys } from 'lodash';
+
 import { readConfig } from '../utils/config_utils';
 import deployments from './';
-import { keys } from 'lodash';
 
 export default (environment, command) => {
   const config = readConfig();

@@ -15,7 +15,7 @@ const createDockerFile = ({ config, environment }) => {
   fs.writeFileSync(
     dockerFile,
     `
-FROM node:4.8.4
+FROM node:8.9.1
 ADD app.tar.gz /app
 RUN cd /app/bundle/programs/server && npm install
 WORKDIR /app/bundle

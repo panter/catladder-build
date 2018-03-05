@@ -37,7 +37,7 @@ var createDockerFile = function createDockerFile(_ref) {
   var environment = _ref.environment;
 
   var dockerFile = (0, _configsDirectories.getBuildDirDockerFile)({ config: config, environment: environment });
-  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:4.8.4\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
+  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:8.9.1\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
   return dockerFile;
 };
 /* todo generate dockerfile and pipe in * */

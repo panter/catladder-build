@@ -8,8 +8,6 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _child_process = require('child_process');
-
 var _fs = require('fs');
 
 var _fs2 = _interopRequireDefault(_fs);
@@ -28,9 +26,9 @@ var _uiAction_title = require('../../ui/action_title');
 
 var _uiAction_title2 = _interopRequireDefault(_uiAction_title);
 
-var _uiPrint_command = require('../../ui/print_command');
+var _utilsExec = require('../../utils/exec');
 
-var _uiPrint_command2 = _interopRequireDefault(_uiPrint_command);
+var _utilsExec2 = _interopRequireDefault(_utilsExec);
 
 var createDockerFile = function createDockerFile(_ref) {
   var config = _ref.config;
@@ -51,12 +49,6 @@ const dockerFile = `
   CMD ["node", "main.js"]
 ` */
 
-var exec = function exec(cmd) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  (0, _uiPrint_command2['default'])(cmd);
-  (0, _child_process.execSync)(cmd, _extends({ stdio: 'inherit' }, options));
-};
 var sanitizeKubeValue = function sanitizeKubeValue(value) {
   return (0, _lodash.isObject)(value) ? JSON.stringify(value) : (0, _lodash.toString)(value);
 };
@@ -75,12 +67,12 @@ exports['default'] = function (environment, done) {
   var buildDir = (0, _configsDirectories.getBuildDir)({ environment: environment, config: config });
   var dockerBuildCommand = 'docker build -t ' + appname + ' -f ' + dockerFile + ' ' + buildDir;
 
-  exec(dockerBuildCommand);
+  (0, _utilsExec2['default'])(dockerBuildCommand);
 
   var versionTag = (0, _utilsGit_utils.getFullVersionString)(environment);
   var fullImageName = dockerEndPoint + '/' + appname + ':' + versionTag;
-  exec('docker tag ' + appname + ' ' + fullImageName);
-  exec('gcloud docker -- push ' + fullImageName);
+  (0, _utilsExec2['default'])('docker tag ' + appname + ' ' + fullImageName);
+  (0, _utilsExec2['default'])('gcloud docker -- push ' + fullImageName);
 
   var _config$environments$environment = config.environments[environment];
   var url = _config$environments$environment.url;
@@ -107,7 +99,7 @@ exports['default'] = function (environment, done) {
       env: JSON.stringify(kubeEnv)
     });
     console.log('apply', yaml);
-    exec('kubectl apply -f -', { input: yaml, stdio: ['pipe', 1, 2] });
+    (0, _utilsExec2['default'])('kubectl apply -f -', { input: yaml, stdio: ['pipe', 1, 2] });
   });
   done(null, 'done');
 };

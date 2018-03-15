@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import fs from 'fs';
 
 import { template, map, isObject, toString } from 'lodash';
@@ -8,7 +7,7 @@ import { getFullVersionString } from '../../utils/git_utils';
 import { readConfig } from '../../utils/config_utils';
 import { readPassYaml } from '../../utils/pass_utils';
 import actionTitle from '../../ui/action_title';
-import printCommand from '../../ui/print_command';
+import exec from '../../utils/exec';
 
 const createDockerFile = ({ config, environment }) => {
   const dockerFile = getBuildDirDockerFile({ config, environment });
@@ -36,10 +35,6 @@ const dockerFile = `
   CMD ["node", "main.js"]
 ` */
 
-const exec = (cmd, options = {}) => {
-  printCommand(cmd);
-  execSync(cmd, { stdio: 'inherit', ...options });
-};
 const sanitizeKubeValue = value => (isObject(value) ? JSON.stringify(value) : toString(value));
 
 export default (environment, done) => {

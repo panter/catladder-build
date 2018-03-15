@@ -1,13 +1,14 @@
 import _ from 'lodash';
-import { execSync } from 'child_process';
+
 import { getBuildDir } from '../configs/directories';
+import exec from '../utils/exec';
 
 const execInstallNpmModules = ({ config }) => {
   if (config.useYarn) {
     // install yarn if not available on meteor
-    execSync('meteor npm install -g yarn');
+    exec('meteor npm install -g yarn');
   }
-  execSync(`meteor ${config.useYarn ? 'yarn' : 'npm'} install`, {
+  exec(`meteor ${config.useYarn ? 'yarn' : 'npm'} install`, {
     cwd: config.appDir,
     stdio: 'inherit',
   });
@@ -26,7 +27,7 @@ export default ({ config, environment, additionalBuildEnv = {} }, args = []) => 
     ' ',
   );
   execInstallNpmModules({ config });
-  execSync(`${buildEnvString} meteor build ${args.join(' ')} --server ${envConf.url} ${buildDir}`, {
+  exec(`${buildEnvString} meteor build ${args.join(' ')} --server ${envConf.url} ${buildDir}`, {
     cwd: config.appDir,
     stdio: 'inherit',
   });

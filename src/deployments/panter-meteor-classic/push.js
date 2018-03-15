@@ -1,10 +1,9 @@
-import { execSync } from 'child_process';
-
 import remoteExec from 'ssh-exec';
 
 import { getBuildDir } from '../../configs/directories';
 import { getSshConfig, readConfig } from '../../utils/config_utils';
 import actionTitle from '../../ui/action_title';
+import exec from '../../utils/exec';
 
 const CONFIGFILE = '.catladder.yaml';
 
@@ -15,8 +14,9 @@ export default (environment, done) => {
   const sshConfig = getSshConfig(CONFIGFILE, environment);
   actionTitle(`uploading server bundle to ${environment}`);
   const buildDir = getBuildDir({ config, environment });
-  execSync(`scp ${buildDir}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: 'inherit' });
-  remoteExec(`
+  exec(`scp ${buildDir}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: 'inherit' });
+  remoteExec(
+    `
       rm -rf ~/app/last
       mv ~/app/bundle ~/app/last
       rm ~/app/current
@@ -25,5 +25,8 @@ export default (environment, done) => {
       pushd ~/app/bundle/programs/server
       npm install
       popd
-    `, sshConfig, done).pipe(process.stdout);
+    `,
+    sshConfig,
+    done,
+  ).pipe(process.stdout);
 };

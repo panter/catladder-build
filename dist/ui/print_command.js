@@ -11,7 +11,8 @@ var _colorsSafe = require('colors/safe');
 var _colorsSafe2 = _interopRequireDefault(_colorsSafe);
 
 exports['default'] = function (line) {
-  return console.log(_colorsSafe2['default'].green('$ ' + line));
+  console.log();
+  console.log(_colorsSafe2['default'].green('$ ' + line));
 };
 
 module.exports = exports['default'];

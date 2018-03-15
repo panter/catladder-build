@@ -16,6 +16,10 @@ var _jsYaml = require('js-yaml');
 
 var _jsYaml2 = _interopRequireDefault(_jsYaml);
 
+var _configsDirectories = require('../configs/directories');
+
+var _config_utils = require('./config_utils');
+
 var _exec = require('./exec');
 
 var _exec2 = _interopRequireDefault(_exec);
@@ -76,5 +80,14 @@ var editPass = function editPass(passPath) {
   });
   pushPass();
 };
+
 exports.editPass = editPass;
+// high level
+
+var readEnvFileFromPass = function readEnvFileFromPass(environment) {
+  var config = (0, _config_utils.readConfig)();
+  var passPathForEnvVars = (0, _configsDirectories.passEnvFile)({ config: config, environment: environment });
+  return readPassYaml(passPathForEnvVars);
+};
+exports.readEnvFileFromPass = readEnvFileFromPass;
 //# sourceMappingURL=pass_utils.js.map

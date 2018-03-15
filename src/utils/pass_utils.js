@@ -3,6 +3,8 @@ import { spawnSync } from 'child_process';
 import _ from 'lodash';
 import yaml from 'js-yaml';
 
+import { passEnvFile } from '../configs/directories';
+import { readConfig } from './config_utils';
 import exec from './exec';
 
 export const pullPass = () => exec('pass git pull', { stdio: ['pipe', 1, 2] });
@@ -45,4 +47,12 @@ export const editPass = (passPath) => {
     stdio: 'inherit',
   });
   pushPass();
+};
+
+// high level
+
+export const readEnvFileFromPass = (environment) => {
+  const config = readConfig();
+  const passPathForEnvVars = passEnvFile({ config, environment });
+  return readPassYaml(passPathForEnvVars);
 };

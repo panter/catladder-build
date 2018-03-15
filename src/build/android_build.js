@@ -5,6 +5,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import shellescape from 'shell-escape';
 
+import { getFullVersionString } from '../utils/git_utils';
 import { readPass, generatePass, hasPass } from '../utils/pass_utils';
 import exec from '../utils/exec';
 
@@ -96,7 +97,9 @@ export const androidPrepareForStore = ({ config, environment }) => {
   ]);
   exec(zipAlignCommand, { stdio: 'inherit' });
 
-  const outfile = `${androidBuildDir}/${config.appname}-${environment}-${now}.apk`;
+  const outfile = `${androidBuildDir}/${config.appname}-${getFullVersionString(
+    environment,
+  )}-${now}.apk`;
   if (fs.existsSync(outfile)) {
     fs.unlinkSync(outfile);
   }

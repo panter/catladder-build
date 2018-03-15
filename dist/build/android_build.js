@@ -28,6 +28,8 @@ var _shellEscape = require('shell-escape');
 
 var _shellEscape2 = _interopRequireDefault(_shellEscape);
 
+var _utilsGit_utils = require('../utils/git_utils');
+
 var _utilsPass_utils = require('../utils/pass_utils');
 
 var _utilsExec = require('../utils/exec');
@@ -135,7 +137,7 @@ var androidPrepareForStore = function androidPrepareForStore(_ref6) {
   var zipAlignCommand = (0, _shellEscape2['default'])([getAndroidBuildTool(config, 'zipalign'), 4, inFile, alignFile]);
   (0, _utilsExec2['default'])(zipAlignCommand, { stdio: 'inherit' });
 
-  var outfile = androidBuildDir + '/' + config.appname + '-' + environment + '-' + now + '.apk';
+  var outfile = androidBuildDir + '/' + config.appname + '-' + (0, _utilsGit_utils.getFullVersionString)(environment) + '-' + now + '.apk';
   if (_fs2['default'].existsSync(outfile)) {
     _fs2['default'].unlinkSync(outfile);
   }

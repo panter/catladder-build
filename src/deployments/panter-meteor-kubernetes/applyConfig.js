@@ -2,7 +2,6 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 
 import { template, map, isObject, toString } from 'lodash';
-
 import { getKubernetesImageNameFromConfig } from './libs/utils';
 import { passEnvFile } from '../../configs/directories';
 import { readConfig } from '../../utils/config_utils';

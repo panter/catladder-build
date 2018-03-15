@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import fs from 'fs';
 
 import { generateKubernetesImageName, writeImageNameToConfig } from './libs/utils';
@@ -6,14 +5,14 @@ import { getBuildDir, getBuildDirDockerFile } from '../../configs/directories';
 import { readConfig } from '../../utils/config_utils';
 import actionTitle from '../../ui/action_title';
 import applyConfig from './applyConfig';
-import printCommand from '../../ui/print_command';
+import exec from '../../utils/exec';
 
 const createDockerFile = ({ config, environment }) => {
   const dockerFile = getBuildDirDockerFile({ config, environment });
   fs.writeFileSync(
     dockerFile,
     `
-FROM node:4.8.4
+FROM node:8.9.1
 ADD app.tar.gz /app
 RUN cd /app/bundle/programs/server && npm install
 WORKDIR /app/bundle
@@ -33,11 +32,6 @@ const dockerFile = `
   EXPOSE 8888
   CMD ["node", "main.js"]
 ` */
-
-const exec = (cmd, options = {}) => {
-  printCommand(cmd);
-  execSync(cmd, { stdio: 'inherit', ...options });
-};
 
 export default (environment, done) => {
   actionTitle(`  🎶    👊   push it real good ! 👊   🎶   ${environment} 🎶 `);

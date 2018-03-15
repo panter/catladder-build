@@ -1,14 +1,10 @@
 'use strict';
 
-var _extends = require('babel-runtime/helpers/extends')['default'];
-
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
-
-var _child_process = require('child_process');
 
 var _fs = require('fs');
 
@@ -28,16 +24,16 @@ var _applyConfig = require('./applyConfig');
 
 var _applyConfig2 = _interopRequireDefault(_applyConfig);
 
-var _uiPrint_command = require('../../ui/print_command');
+var _utilsExec = require('../../utils/exec');
 
-var _uiPrint_command2 = _interopRequireDefault(_uiPrint_command);
+var _utilsExec2 = _interopRequireDefault(_utilsExec);
 
 var createDockerFile = function createDockerFile(_ref) {
   var config = _ref.config;
   var environment = _ref.environment;
 
   var dockerFile = (0, _configsDirectories.getBuildDirDockerFile)({ config: config, environment: environment });
-  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:4.8.4\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
+  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:8.9.1\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
   return dockerFile;
 };
 /* todo generate dockerfile and pipe in * */
@@ -50,13 +46,6 @@ const dockerFile = `
   EXPOSE 8888
   CMD ["node", "main.js"]
 ` */
-
-var exec = function exec(cmd) {
-  var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-  (0, _uiPrint_command2['default'])(cmd);
-  (0, _child_process.execSync)(cmd, _extends({ stdio: 'inherit' }, options));
-};
 
 exports['default'] = function (environment, done) {
   (0, _uiAction_title2['default'])('  🎶    👊   push it real good ! 👊   🎶   ' + environment + ' 🎶 ');
@@ -72,12 +61,12 @@ exports['default'] = function (environment, done) {
   var buildDir = (0, _configsDirectories.getBuildDir)({ environment: environment, config: config });
   var dockerBuildCommand = 'docker build -t ' + appname + ' -f ' + dockerFile + ' ' + buildDir;
 
-  exec(dockerBuildCommand);
+  (0, _utilsExec2['default'])(dockerBuildCommand);
 
   (0, _libsUtils.writeImageNameToConfig)(config, environment, fullImageName);
 
-  exec('docker tag ' + appname + ' ' + fullImageName);
-  exec('gcloud docker -- push ' + fullImageName);
+  (0, _utilsExec2['default'])('docker tag ' + appname + ' ' + fullImageName);
+  (0, _utilsExec2['default'])('gcloud docker -- push ' + fullImageName);
 
   (0, _applyConfig2['default'])(environment, done);
 };

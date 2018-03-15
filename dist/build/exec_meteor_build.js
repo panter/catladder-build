@@ -12,18 +12,20 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _child_process = require('child_process');
-
 var _configsDirectories = require('../configs/directories');
+
+var _utilsExec = require('../utils/exec');
+
+var _utilsExec2 = _interopRequireDefault(_utilsExec);
 
 var execInstallNpmModules = function execInstallNpmModules(_ref) {
   var config = _ref.config;
 
   if (config.useYarn) {
     // install yarn if not available on meteor
-    (0, _child_process.execSync)('meteor npm install -g yarn');
+    (0, _utilsExec2['default'])('meteor npm install -g yarn');
   }
-  (0, _child_process.execSync)('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', {
+  (0, _utilsExec2['default'])('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', {
     cwd: config.appDir,
     stdio: 'inherit'
   });
@@ -47,7 +49,7 @@ exports['default'] = function (_ref2) {
     return key + '=\'' + value + '\'';
   }).join(' ');
   execInstallNpmModules({ config: config });
-  (0, _child_process.execSync)(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, {
+  (0, _utilsExec2['default'])(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, {
     cwd: config.appDir,
     stdio: 'inherit'
   });

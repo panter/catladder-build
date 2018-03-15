@@ -6,30 +6,38 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-var _jsYaml = require('js-yaml');
-
-var _jsYaml2 = _interopRequireDefault(_jsYaml);
+var _child_process = require('child_process');
 
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _child_process = require('child_process');
+var _jsYaml = require('js-yaml');
+
+var _jsYaml2 = _interopRequireDefault(_jsYaml);
+
+var _configsDirectories = require('../configs/directories');
+
+var _config_utils = require('./config_utils');
+
+var _exec = require('./exec');
+
+var _exec2 = _interopRequireDefault(_exec);
 
 var pullPass = function pullPass() {
-  return (0, _child_process.execSync)('pass git pull', { stdio: ['pipe', 1, 2] });
+  return (0, _exec2['default'])('pass git pull', { stdio: ['pipe', 1, 2] });
 };
 exports.pullPass = pullPass;
 var pushPass = function pushPass() {
   pullPass();
-  (0, _child_process.execSync)('pass git push', { stdio: ['pipe', 1, 2] });
+  (0, _exec2['default'])('pass git push', { stdio: ['pipe', 1, 2] });
 };
 
 exports.pushPass = pushPass;
 var readPass = function readPass(passPath) {
   try {
     pullPass();
-    return (0, _child_process.execSync)('pass show ' + passPath, { stdio: [0], encoding: 'utf-8' });
+    return (0, _exec2['default'])('pass show ' + passPath, { stdio: [0], encoding: 'utf-8' });
   } catch (error) {
     if (error.message.indexOf('is not in the password store') !== -1) {
       return null;
@@ -48,7 +56,7 @@ var generatePass = function generatePass(passPath) {
   var length = arguments.length <= 1 || arguments[1] === undefined ? 32 : arguments[1];
 
   // generate without symbols
-  (0, _child_process.execSync)('pass generate -n ' + passPath + ' ' + length);
+  (0, _exec2['default'])('pass generate -n ' + passPath + ' ' + length);
   pushPass();
   return readPass(passPath);
 };
@@ -60,7 +68,7 @@ var readPassYaml = function readPassYaml(passPath) {
 exports.readPassYaml = readPassYaml;
 var writePass = function writePass(passPath, input) {
   console.log('writing to pass', passPath);
-  (0, _child_process.execSync)('pass insert ' + passPath + ' -m', { input: input, stdio: ['pipe', 1, 2] });
+  (0, _exec2['default'])('pass insert ' + passPath + ' -m', { input: input, stdio: ['pipe', 1, 2] });
   pushPass();
 };
 
@@ -72,5 +80,14 @@ var editPass = function editPass(passPath) {
   });
   pushPass();
 };
+
 exports.editPass = editPass;
+// high level
+
+var readEnvFileFromPass = function readEnvFileFromPass(environment) {
+  var config = (0, _config_utils.readConfig)();
+  var passPathForEnvVars = (0, _configsDirectories.passEnvFile)({ config: config, environment: environment });
+  return readPassYaml(passPathForEnvVars);
+};
+exports.readEnvFileFromPass = readEnvFileFromPass;
 //# sourceMappingURL=pass_utils.js.map

@@ -22,6 +22,8 @@ var _utilsGit_utils = require('../utils/git_utils');
 
 var _utilsConfig_utils = require('../utils/config_utils');
 
+var _utilsPass_utils = require('../utils/pass_utils');
+
 var _uiAction_title = require('../ui/action_title');
 
 var _uiAction_title2 = _interopRequireDefault(_uiAction_title);
@@ -42,7 +44,12 @@ exports['default'] = function (environment, done) {
   var config = (0, _utilsConfig_utils.readConfig)();
   var buildDir = (0, _configsDirectories.getBuildDir)({ config: config, environment: environment });
   (0, _uiAction_title2['default'])('building mobile apps ' + (0, _utilsGit_utils.getFullVersionString)(environment));
+
   console.log('build dir: ' + buildDir);
+
+  // read it so that it asks for password
+  // otherwise it asks in the middle of the build, which can take some minutes
+  (0, _utilsPass_utils.readEnvFileFromPass)(environment);
 
   // remove project folders if existing
   // otherwise apps might get bloated with old code

@@ -1,7 +1,7 @@
 {
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
-  "version": "0.6.2",
+  "version": "0.7.0",
 
   "author": {
     "name": "Marco Wettstein",
@@ -29,7 +29,7 @@
     "prepublish": "yarn run compile",
     "test": "babel-node --stage 1 test/harness.js test/**/*.js",
     "compile": "yarn run lint && babel src -s -d dist",
-    "compile:watch": "watch 'yarn run compile' src",
+    "compile:watch": "watch 'yarn run compile' src; yalc publish",
     "lint": "eslint src/**.js"
   },
   "main": "./dist/catladder.js",

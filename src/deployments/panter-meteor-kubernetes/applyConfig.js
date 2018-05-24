@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-import { template, map, isObject, toString } from 'lodash';
+import { template, map, isObject, toString, merge } from 'lodash';
 import { getKubernetesImageNameFromConfig } from './libs/utils';
 import { passEnvFile } from '../../configs/directories';
 import { readConfig } from '../../utils/config_utils';
@@ -32,12 +32,15 @@ export default (environment, done) => {
   kubeDeployments.forEach((deployment) => {
     const { file, env: deploymentEnv = {} } = deployment;
     const compiled = template(fs.readFileSync(file));
-    const fullEnv = {
-      ...passEnv,
+    const baseEnv = {
       ROOT_URL: url,
-      ...commonDeploymentEnv,
-      ...deploymentEnv,
+      METEOR_SETTINGS: {
+        public: {
+          KUBERNETES_IMAGE: imageName, // useful to show the actual image on the client
+        },
+      },
     };
+    const fullEnv = merge({}, baseEnv, commonDeploymentEnv, deploymentEnv, passEnv);
 
     const kubeEnv = map(fullEnv, (value, name) => ({ name, value: sanitizeKubeValue(value) }));
     const yaml = compiled({

@@ -64,9 +64,15 @@ exports['default'] = function (environment, done) {
     var deploymentEnv = _deployment$env === undefined ? {} : _deployment$env;
 
     var compiled = (0, _lodash.template)(_fs2['default'].readFileSync(file));
-    var fullEnv = _extends({}, passEnv, {
-      ROOT_URL: url
-    }, commonDeploymentEnv, deploymentEnv);
+    var baseEnv = {
+      ROOT_URL: url,
+      METEOR_SETTINGS: {
+        'public': {
+          KUBERNETES_IMAGE: imageName }
+      }
+    };
+    // useful to show the actual image on the client
+    var fullEnv = (0, _lodash.merge)({}, baseEnv, commonDeploymentEnv, deploymentEnv, passEnv);
 
     var kubeEnv = (0, _lodash.map)(fullEnv, function (value, name) {
       return { name: name, value: sanitizeKubeValue(value) };

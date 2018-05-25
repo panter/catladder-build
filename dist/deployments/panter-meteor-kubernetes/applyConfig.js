@@ -64,8 +64,7 @@ exports['default'] = function (environment, done) {
     };
     // useful to show the actual image on the client
     var fullEnv = (0, _lodash.merge)({}, baseEnv, environmentEnv, commonDeploymentEnv, deploymentEnv, passEnv);
-    console.log(fullEnv);
-    process.exit();
+
     var kubeEnv = (0, _lodash.map)(fullEnv, function (value, name) {
       return { name: name, value: sanitizeKubeValue(value) };
     });

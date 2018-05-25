@@ -37,8 +37,7 @@ export default (environment, done) => {
       },
     };
     const fullEnv = merge({}, baseEnv, environmentEnv, commonDeploymentEnv, deploymentEnv, passEnv);
-    console.log(fullEnv);
-    process.exit();
+    
     const kubeEnv = map(fullEnv, (value, name) => ({ name, value: sanitizeKubeValue(value) }));
     const yaml = compiled({
       image: imageName,

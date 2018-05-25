@@ -42,6 +42,9 @@ export default (environment, done) => {
     editPass(passPathForEnvVars);
 
     const command = getDeploymentCommand(environment, 'applyConfig');
-    command(environment, done);
+    if (command) command(environment, done);
+    else {
+      done();
+    }
   });
 };

@@ -20,6 +20,10 @@ var _edit_env = require('./edit_env');
 
 var _edit_env2 = _interopRequireDefault(_edit_env);
 
+var _run = require('./run');
+
+var _run2 = _interopRequireDefault(_run);
+
 var _init = require('./init');
 
 var _init2 = _interopRequireDefault(_init);
@@ -50,6 +54,7 @@ var _version2 = _interopRequireDefault(_version);
 
 exports.init = _init2['default'];
 exports.config = _config2['default'];
+exports.run = _run2['default'];
 exports.editEnv = _edit_env2['default'];
 exports.restart = _restart2['default'];
 exports.buildServer = _build_server2['default'];

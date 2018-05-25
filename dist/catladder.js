@@ -56,7 +56,7 @@ var done = function done(error, message) {
 };
 
 if (commands[command]) {
-  if (command !== 'init' && command !== 'version' && !environment) {
+  if (command !== 'init' && command !== 'version' && command !== 'run' && !environment) {
     (0, _uiDone_error2['default'])(null, 'please specify an environment');
   } else {
     try {

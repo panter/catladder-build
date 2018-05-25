@@ -1,8 +1,7 @@
 {
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
-  "version": "0.7.0",
-
+  "version": "0.8.0-beta.0",
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",
@@ -47,6 +46,7 @@
     "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
     "ssh-exec": "^2.0.0",
+    "unique-filename": "^1.1.0",
     "update-notifier": "^2.1.0"
   }
 }

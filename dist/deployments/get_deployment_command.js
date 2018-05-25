@@ -18,10 +18,14 @@ exports['default'] = function (environment, command) {
   var config = (0, _utilsConfig_utils.readConfig)();
   var deployment = config.environments[environment].deployment;
 
+  if (!deployment) {
+    console.log('no deployment configured');
+    return;
+  }
+
   var _ref = deployment || {};
 
-  var _ref$type = _ref.type;
-  var type = _ref$type === undefined ? 'panter-meteor-classic' : _ref$type;
+  var type = _ref.type;
 
   var availableCommands = (0, _lodash.keys)(_2['default'][type]).join(', ');
   if (_2['default'][type]) {

@@ -6,7 +6,11 @@ import deployments from './';
 export default (environment, command) => {
   const config = readConfig();
   const { deployment } = config.environments[environment];
-  const { type = 'panter-meteor-classic' } = deployment || {};
+  if (!deployment) {
+    console.log('no deployment configured');
+    return;
+  }
+  const { type } = deployment || {};
   const availableCommands = keys(deployments[type]).join(', ');
   if (deployments[type]) {
     if (deployments[type][command]) {

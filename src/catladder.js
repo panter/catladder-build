@@ -12,14 +12,10 @@ const options = minimist(process.argv.slice(2));
 
 const [commandRaw, environment] = options._;
 
-const command = (
-  options.v ? 'version' :
-    commandRaw && camelCase(commandRaw)
-);
+const command = options.v ? 'version' : commandRaw && camelCase(commandRaw);
 
 // show intro
 intro();
-
 
 const done = (error, message) => {
   if (!error) {
@@ -30,7 +26,7 @@ const done = (error, message) => {
 };
 
 if (commands[command]) {
-  if (command !== 'init' && command !== 'version' && !environment) {
+  if (command !== 'init' && command !== 'version' && command !== 'run' && !environment) {
     doneError(null, 'please specify an environment');
   } else {
     try {

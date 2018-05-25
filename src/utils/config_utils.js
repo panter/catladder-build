@@ -13,25 +13,31 @@ export const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
 
 export const getSshConfig = (configFile, environment) => {
   const config = readConfig();
-  return _.pick(
-    config.environments[environment],
-    ['host', 'user', 'password', 'key'],
-  );
+  return _.pick(config.environments[environment], ['host', 'user', 'password', 'key']);
 };
 
-export const createEnvSh = ({ environment, version }, envVars) => {
-  const getSanitziedValue = (value) => {
-    if (_.isObject(value)) {
-      return JSON.stringify(value);
-    }
-    return value;
-  };
-  // build is excluded, that is only used while building
-  const body = _.keys(_.omit(envVars, ['build'])).map((key) => {
-    const value = getSanitziedValue(envVars[key]);
+const getSanitziedValue = (value) => {
+  if (_.isObject(value)) {
+    return JSON.stringify(value);
+  }
+  return value;
+};
 
-    return `export ${key}='${value}'`;
-  }).join('\n');
+const getKeyValueArraySanitized = envVars =>
+  _.keys(envVars).map(key => ({
+    key,
+    value: getSanitziedValue(envVars[key]),
+  }));
+
+export const getEnvCommandString = envVars =>
+  getKeyValueArraySanitized(envVars)
+    .map(({ key, value }) => `${key}='${value}'`)
+    .join(' ');
+export const createEnvSh = ({ environment, version }, envVars) => {
+  // build is excluded, that is only used while building
+  const body = getKeyValueArraySanitized(_.omit(envVars, ['build']))
+    .map(({ key, value }) => `export ${key}='${value}'`)
+    .join('\n');
   const envHeader = `
 # autocreated with PANTER CATLADDER 🐱 🔧 v${version}
 # environment: ${environment}

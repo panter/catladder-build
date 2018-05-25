@@ -68,7 +68,9 @@ exports['default'] = function (environment, done) {
     (0, _utilsPass_utils.editPass)(passPathForEnvVars);
 
     var command = (0, _deploymentsGet_deployment_command2['default'])(environment, 'applyConfig');
-    command(environment, done);
+    if (command) command(environment, done);else {
+      done();
+    }
   });
 };
 

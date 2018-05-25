@@ -36,20 +36,38 @@ var getSshConfig = function getSshConfig(configFile, environment) {
 };
 
 exports.getSshConfig = getSshConfig;
-var createEnvSh = function createEnvSh(_ref, envVars) {
-  var environment = _ref.environment;
-  var version = _ref.version;
+var getSanitziedValue = function getSanitziedValue(value) {
+  if (_lodash2['default'].isObject(value)) {
+    return JSON.stringify(value);
+  }
+  return value;
+};
 
-  var getSanitziedValue = function getSanitziedValue(value) {
-    if (_lodash2['default'].isObject(value)) {
-      return JSON.stringify(value);
-    }
-    return value;
-  };
+var getKeyValueArraySanitized = function getKeyValueArraySanitized(envVars) {
+  return _lodash2['default'].keys(envVars).map(function (key) {
+    return {
+      key: key,
+      value: getSanitziedValue(envVars[key])
+    };
+  });
+};
+
+var getEnvCommandString = function getEnvCommandString(envVars) {
+  return getKeyValueArraySanitized(envVars).map(function (_ref) {
+    var key = _ref.key;
+    var value = _ref.value;
+    return key + '=\'' + value + '\'';
+  }).join(' ');
+};
+exports.getEnvCommandString = getEnvCommandString;
+var createEnvSh = function createEnvSh(_ref2, envVars) {
+  var environment = _ref2.environment;
+  var version = _ref2.version;
+
   // build is excluded, that is only used while building
-  var body = _lodash2['default'].keys(_lodash2['default'].omit(envVars, ['build'])).map(function (key) {
-    var value = getSanitziedValue(envVars[key]);
-
+  var body = getKeyValueArraySanitized(_lodash2['default'].omit(envVars, ['build'])).map(function (_ref3) {
+    var key = _ref3.key;
+    var value = _ref3.value;
     return 'export ' + key + '=\'' + value + '\'';
   }).join('\n');
   var envHeader = '\n# autocreated with PANTER CATLADDER 🐱 🔧 v' + version + '\n# environment: ' + environment + '\n#\n# DO NOT EDIT, use\n# $ catladder setup ' + environment + '\n# to edit\n#\n  ';

@@ -9,17 +9,26 @@ import { readConfig, getEnvCommandString } from '../utils/config_utils';
 import { readPassYaml } from '../utils/pass_utils';
 import exec from '../utils/exec';
 
-export default (environment = 'develop', done) => {
+const getCommand = (config, script = null) => {
+  if (script) {
+    return config.scripts[script];
+  }
+  return config.run;
+};
+export default (environment = 'develop', done, script = null) => {
   const config = readConfig();
   prompt.start();
 
-  if (!config.run) {
-    throw new Error('please config `run`');
+  if (!config.run || !config.scripts) {
+    throw new Error('please config `run` or `config`');
   }
 
+  if (script && (!config.scripts || !config.scripts[script])) {
+    throw new Error(`${script} does not exist in config.scripts`);
+  }
   const { appDir } = config;
 
-  const { command, env: runEnv } = config.run;
+  const { command, env: runEnv, dir = appDir } = getCommand(config, script);
 
   const passPathForEnvVars = passEnvFile({ config, environment });
   const passEnv = readPassYaml(passPathForEnvVars);
@@ -39,7 +48,7 @@ export default (environment = 'develop', done) => {
   }
   const envString = getEnvCommandString(fullEnv);
   try {
-    exec(`${appDir ? `cd ${appDir} && ` : ''}${envString} ${command} ${commandArgs}`);
+    exec(`${dir ? `cd ${dir} && ` : ''}${envString} ${command} ${commandArgs}`);
   } catch (e) {
     // probably canceled
   } finally {

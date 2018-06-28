@@ -34,20 +34,37 @@ var _utilsExec = require('../utils/exec');
 
 var _utilsExec2 = _interopRequireDefault(_utilsExec);
 
+var getCommand = function getCommand(config) {
+  var script = arguments.length <= 1 || arguments[1] === undefined ? null : arguments[1];
+
+  if (script) {
+    return config.scripts[script];
+  }
+  return config.run;
+};
+
 exports['default'] = function (environment, done) {
   if (environment === undefined) environment = 'develop';
+  var script = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
 
   var config = (0, _utilsConfig_utils.readConfig)();
   _prompt2['default'].start();
 
-  if (!config.run) {
-    throw new Error('please config `run`');
+  if (!config.run || !config.scripts) {
+    throw new Error('please config `run` or `config`');
   }
 
+  if (script && (!config.scripts || !config.scripts[script])) {
+    throw new Error(script + ' does not exist in config.scripts');
+  }
   var appDir = config.appDir;
-  var _config$run = config.run;
-  var command = _config$run.command;
-  var runEnv = _config$run.env;
+
+  var _getCommand = getCommand(config, script);
+
+  var command = _getCommand.command;
+  var runEnv = _getCommand.env;
+  var _getCommand$dir = _getCommand.dir;
+  var dir = _getCommand$dir === undefined ? appDir : _getCommand$dir;
 
   var passPathForEnvVars = (0, _configsDirectories.passEnvFile)({ config: config, environment: environment });
   var passEnv = (0, _utilsPass_utils.readPassYaml)(passPathForEnvVars);
@@ -69,7 +86,7 @@ exports['default'] = function (environment, done) {
   }
   var envString = (0, _utilsConfig_utils.getEnvCommandString)(fullEnv);
   try {
-    (0, _utilsExec2['default'])('' + (appDir ? 'cd ' + appDir + ' && ' : '') + envString + ' ' + command + ' ' + commandArgs);
+    (0, _utilsExec2['default'])('' + (dir ? 'cd ' + dir + ' && ' : '') + envString + ' ' + command + ' ' + commandArgs);
   } catch (e) {
     // probably canceled
   } finally {

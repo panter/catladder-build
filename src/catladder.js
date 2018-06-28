@@ -10,7 +10,7 @@ import intro from './ui/intro';
 // parse options
 const options = minimist(process.argv.slice(2));
 
-const [commandRaw, environment] = options._;
+const [commandRaw, environment, ...additionalArgs] = options._;
 
 const command = options.v ? 'version' : commandRaw && camelCase(commandRaw);
 
@@ -30,7 +30,7 @@ if (commands[command]) {
     doneError(null, 'please specify an environment');
   } else {
     try {
-      commands[command](environment, done);
+      commands[command](environment, done, ...additionalArgs);
     } catch (e) {
       done(e, 'command failed');
     }

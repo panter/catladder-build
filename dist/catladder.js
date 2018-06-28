@@ -1,6 +1,8 @@
 'use strict';
 
-var _slicedToArray = require('babel-runtime/helpers/sliced-to-array')['default'];
+var _toArray = require('babel-runtime/helpers/to-array')['default'];
+
+var _toConsumableArray = require('babel-runtime/helpers/to-consumable-array')['default'];
 
 var _interopRequireDefault = require('babel-runtime/helpers/interop-require-default')['default'];
 
@@ -37,10 +39,12 @@ var _uiIntro2 = _interopRequireDefault(_uiIntro);
 // parse options
 var options = (0, _minimist2['default'])(process.argv.slice(2));
 
-var _options$_ = _slicedToArray(options._, 2);
+var _options$_ = _toArray(options._);
 
 var commandRaw = _options$_[0];
 var environment = _options$_[1];
+
+var additionalArgs = _options$_.slice(2);
 
 var command = options.v ? 'version' : commandRaw && (0, _camelcase2['default'])(commandRaw);
 
@@ -60,7 +64,7 @@ if (commands[command]) {
     (0, _uiDone_error2['default'])(null, 'please specify an environment');
   } else {
     try {
-      commands[command](environment, done);
+      commands[command].apply(commands, [environment, done].concat(_toConsumableArray(additionalArgs)));
     } catch (e) {
       done(e, 'command failed');
     }

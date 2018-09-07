@@ -6,7 +6,10 @@ import exec from '../utils/exec';
 const execInstallNpmModules = ({ config }) => {
   if (config.useYarn) {
     // install yarn if not available on meteor
-    exec('meteor npm install -g yarn');
+    exec('meteor npm install -g yarn', {
+      cwd: config.appDir,
+      stdio: 'inherit',
+    });
   }
   exec(`meteor ${config.useYarn ? 'yarn' : 'npm'} install`, {
     cwd: config.appDir,
@@ -27,8 +30,13 @@ export default ({ config, environment, additionalBuildEnv = {} }, args = []) => 
     ' ',
   );
   execInstallNpmModules({ config });
-  exec(`${buildEnvString} meteor build ${args.join(' ')} --server ${envConf.url} ${buildDir}`, {
-    cwd: config.appDir,
-    stdio: 'inherit',
-  });
+  exec(
+    `${buildEnvString} meteor build ${args.join(' ')} --architecture os.linux.x86_64 --server ${
+      envConf.url
+    } --directory ${buildDir}`,
+    {
+      cwd: config.appDir,
+      stdio: 'inherit',
+    },
+  );
 };

@@ -7,15 +7,16 @@ import actionTitle from '../../ui/action_title';
 import applyConfig from './applyConfig';
 import exec from '../../utils/exec';
 
-const createDockerFile = ({ config, environment }) => {
+const createDockerFile = ({ nodeVersion, config, environment }) => {
   const dockerFile = getBuildDirDockerFile({ config, environment });
+
   fs.writeFileSync(
     dockerFile,
     `
-FROM node:8.9.1
-ADD app.tar.gz /app
-RUN cd /app/bundle/programs/server && npm install
-WORKDIR /app/bundle
+FROM node:${nodeVersion}
+ADD bundle /app
+RUN cd /app/programs/server && npm install
+WORKDIR /app
 EXPOSE 8888
 CMD ["node", "main.js"]
   `,
@@ -33,6 +34,13 @@ const dockerFile = `
   CMD ["node", "main.js"]
 ` */
 
+const getNodeVersion = ({ environment, config }) => {
+  const buildDir = getBuildDir({ environment, config });
+  const meteorNodeVersionFile = `${buildDir}/bundle/.node_version.txt`;
+  const versionString = exec(`cat ${meteorNodeVersionFile}`, { stdio: [0], encoding: 'utf-8' });
+  return versionString.replace('v', '');
+};
+
 export default (environment, done) => {
   actionTitle(`  🎶    👊   push it real good ! 👊   🎶   ${environment} 🎶 `);
   const config = readConfig();
@@ -41,8 +49,10 @@ export default (environment, done) => {
   actionTitle(`image ${fullImageName}`);
 
   const { appname = 'unknown app' } = config;
-
-  const dockerFile = createDockerFile({ config, environment });
+  const nodeVersion = getNodeVersion({ environment, config });
+  console.log(`using node version: ${nodeVersion}`);
+  // const nodeVersion = '8.9.1';
+  const dockerFile = createDockerFile({ nodeVersion, config, environment });
   const buildDir = getBuildDir({ environment, config });
   const dockerBuildCommand = `docker build -t ${appname} -f ${dockerFile} ${buildDir}`;
 

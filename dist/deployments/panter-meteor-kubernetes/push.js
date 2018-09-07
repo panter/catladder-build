@@ -29,11 +29,13 @@ var _utilsExec = require('../../utils/exec');
 var _utilsExec2 = _interopRequireDefault(_utilsExec);
 
 var createDockerFile = function createDockerFile(_ref) {
+  var nodeVersion = _ref.nodeVersion;
   var config = _ref.config;
   var environment = _ref.environment;
 
   var dockerFile = (0, _configsDirectories.getBuildDirDockerFile)({ config: config, environment: environment });
-  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:8.9.1\nADD app.tar.gz /app\nRUN cd /app/bundle/programs/server && npm install\nWORKDIR /app/bundle\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
+
+  _fs2['default'].writeFileSync(dockerFile, '\nFROM node:' + nodeVersion + '\nADD bundle /app\nRUN cd /app/programs/server && npm install\nWORKDIR /app\nEXPOSE 8888\nCMD ["node", "main.js"]\n  ');
   return dockerFile;
 };
 /* todo generate dockerfile and pipe in * */
@@ -47,6 +49,16 @@ const dockerFile = `
   CMD ["node", "main.js"]
 ` */
 
+var getNodeVersion = function getNodeVersion(_ref2) {
+  var environment = _ref2.environment;
+  var config = _ref2.config;
+
+  var buildDir = (0, _configsDirectories.getBuildDir)({ environment: environment, config: config });
+  var meteorNodeVersionFile = buildDir + '/bundle/.node_version.txt';
+  var versionString = (0, _utilsExec2['default'])('cat ' + meteorNodeVersionFile, { stdio: [0], encoding: 'utf-8' });
+  return versionString.replace('v', '');
+};
+
 exports['default'] = function (environment, done) {
   (0, _uiAction_title2['default'])('  🎶    👊   push it real good ! 👊   🎶   ' + environment + ' 🎶 ');
   var config = (0, _utilsConfig_utils.readConfig)();
@@ -57,7 +69,10 @@ exports['default'] = function (environment, done) {
   var _config$appname = config.appname;
   var appname = _config$appname === undefined ? 'unknown app' : _config$appname;
 
-  var dockerFile = createDockerFile({ config: config, environment: environment });
+  var nodeVersion = getNodeVersion({ environment: environment, config: config });
+  console.log('using node version: ' + nodeVersion);
+  // const nodeVersion = '8.9.1';
+  var dockerFile = createDockerFile({ nodeVersion: nodeVersion, config: config, environment: environment });
   var buildDir = (0, _configsDirectories.getBuildDir)({ environment: environment, config: config });
   var dockerBuildCommand = 'docker build -t ' + appname + ' -f ' + dockerFile + ' ' + buildDir;
 

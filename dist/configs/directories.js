@@ -15,6 +15,7 @@ var getBuildDir = function getBuildDir(_ref) {
   var environment = _ref.environment;
   return _path2['default'].resolve(config.buildDir + '/' + environment);
 };
+
 exports.getBuildDir = getBuildDir;
 var getBuildDirDockerFile = function getBuildDirDockerFile(_ref2) {
   var config = _ref2.config;

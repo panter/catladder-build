@@ -2,6 +2,7 @@ import path from 'path';
 
 export const getBuildDir = ({ config, environment }) =>
   path.resolve(`${config.buildDir}/${environment}`);
+
 export const getBuildDirDockerFile = ({ config, environment }) =>
   `${getBuildDir({ config, environment })}/Dockerfile`;
 

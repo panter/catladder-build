@@ -23,7 +23,10 @@ var execInstallNpmModules = function execInstallNpmModules(_ref) {
 
   if (config.useYarn) {
     // install yarn if not available on meteor
-    (0, _utilsExec2['default'])('meteor npm install -g yarn');
+    (0, _utilsExec2['default'])('meteor npm install -g yarn', {
+      cwd: config.appDir,
+      stdio: 'inherit'
+    });
   }
   (0, _utilsExec2['default'])('meteor ' + (config.useYarn ? 'yarn' : 'npm') + ' install', {
     cwd: config.appDir,
@@ -49,7 +52,7 @@ exports['default'] = function (_ref2) {
     return key + '=\'' + value + '\'';
   }).join(' ');
   execInstallNpmModules({ config: config });
-  (0, _utilsExec2['default'])(buildEnvString + ' meteor build ' + args.join(' ') + ' --server ' + envConf.url + ' ' + buildDir, {
+  (0, _utilsExec2['default'])(buildEnvString + ' meteor build ' + args.join(' ') + ' --architecture os.linux.x86_64 --server ' + envConf.url + ' --directory ' + buildDir, {
     cwd: config.appDir,
     stdio: 'inherit'
   });

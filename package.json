@@ -1,11 +1,11 @@
 {
   "name": "@panter/catladder",
   "description": "panter deploy tool for meteor apps",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",
-    "url": "www.panter.ch"
+    "url": "https://www.panter.ch"
   },
   "license": "MIT",
   "repository": {

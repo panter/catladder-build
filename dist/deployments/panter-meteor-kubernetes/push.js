@@ -81,7 +81,15 @@ exports['default'] = function (environment, done) {
   (0, _libsUtils.writeImageNameToConfig)(config, environment, fullImageName);
 
   (0, _utilsExec2['default'])('docker tag ' + appname + ' ' + fullImageName);
-  (0, _utilsExec2['default'])('gcloud docker -- push ' + fullImageName);
+
+  try {
+    (0, _utilsExec2['default'])('docker push ' + fullImageName);
+  } catch (e) {
+    console.warn('You need at least docker version 18.03.0');
+    console.log();
+    console.error(e);
+    process.exit(1);
+  }
 
   (0, _applyConfig2['default'])(environment, done);
 };

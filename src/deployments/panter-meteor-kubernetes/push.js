@@ -61,7 +61,15 @@ export default (environment, done) => {
   writeImageNameToConfig(config, environment, fullImageName);
 
   exec(`docker tag ${appname} ${fullImageName}`);
-  exec(`gcloud docker -- push ${fullImageName}`);
+
+  try {
+    exec(`docker push ${fullImageName}`);
+  } catch (e) {
+    console.warn('You need at least docker version 18.03.0');
+    console.log();
+    console.error(e);
+    process.exit(1);
+  }
 
   applyConfig(environment, done);
 };

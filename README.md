@@ -1,4 +1,4 @@
-# catladder 🐱 🔧
+# catladder-build 🐱 🔧
 
 panter build & deploy tool for meteor apps
 
@@ -16,7 +16,7 @@ Some commands also work on gitlab ci and can be used to deploy the app there. (l
 
 ## Usage
 
-`npm install -g @panter/catladder`
+`npm install -g @panter/catladder-build`
 
 ### Preconditions:
 
@@ -73,7 +73,6 @@ this will create a keystore-file which you can checkin to git. The corresponding
 `catladder build-apps <environment>`
 
 This will create and sign an android apk file and an xcode project, where you can upload the app to the app store.
-
 
 ## ROADMAP:
 

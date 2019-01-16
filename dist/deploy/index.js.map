@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/deploy/index.js"],"names":[],"mappings":";;;;;;;;mCACgC,yBAAyB;;;;qBAG1C;AACb,yBAAuB,kCAAqB;;CAE7C","file":"index.js","sourcesContent":["\nimport panterMeteorClassic from './panter-metero-classic';\n\n\nexport default {\n  'panter-meteor-classic': panterMeteorClassic,\n\n};\n"]}

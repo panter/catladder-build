@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/ui/print_intro_style.js"],"names":[],"mappings":";;;;;;qBAAe,UAAA,IAAI;SAAI,OAAO,CAAC,GAAG,CAAC,MAAM,CAAC,MAAM,CAAC,IAAI,CAAC,CAAC;CAAA","file":"print_intro_style.js","sourcesContent":["export default line => console.log(colors.yellow(line));\n"]}

@@ -1,1 +1,0 @@
-{"version":3,"sources":["../src/update_notifier.js"],"names":[],"mappings":";;;;8BAA2B,iBAAiB;;;;2BAC5B,iBAAiB;;;;AAEjC,iCAAe,EAAE,GAAG,0BAAA,EAAE,CAAC,CAAC,MAAM,EAAE,CAAC","file":"update_notifier.js","sourcesContent":["import updateNotifier from 'update-notifier';\nimport pkg from '../package.json';\n\nupdateNotifier({ pkg }).notify();\n"]}

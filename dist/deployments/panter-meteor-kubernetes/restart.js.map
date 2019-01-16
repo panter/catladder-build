@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../../src/deployments/panter-meteor-kubernetes/restart.js"],"names":[],"mappings":";;;;;;qBAEe,UAAC,WAAW,EAAE,IAAI,EAAK;AACpC,MAAI,CAAC,IAAI,EAAE,qCAAqC,CAAC,CAAC;CACnD","file":"restart.js","sourcesContent":["\n\nexport default (environment, done) => {\n  done(null, 'restart on kubernetes is not needed');\n};\n"]}

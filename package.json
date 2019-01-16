@@ -22,15 +22,16 @@
     "eslint-config-airbnb-base": "^11.3.1",
     "eslint-plugin-import": "^2.7.0",
     "glob": "^5.0.15",
-    "tape": "^4.2.2",
-    "watch": "^1.0.2",
     "semantic-release": "^15.13.3",
-    "travis-deploy-once": "^5.0.11"
+    "rimraf": "^2.6.3",
+    "tape": "^4.2.2",
+    "travis-deploy-once": "^5.0.11",
+    "watch": "^1.0.2"
   },
   "scripts": {
     "prepublish": "yarn run compile",
     "test": "yarn run lint && babel-node --stage 1 test/harness.js test/**/*.js",
-    "compile": "yarn run lint && babel src -s -d dist",
+    "compile": "rimraf dist && yarn run lint && babel src -s -d dist",
     "compile:watch": "watch 'yarn run compile' src; yalc publish",
     "lint": "eslint src/**.js",
     "semantic-release": "semantic-release",
@@ -48,7 +49,6 @@
     "minimist": "^1.2.0",
     "moment": "^2.17.1",
     "prompt": "git+https://github.com/flatiron/prompt.git",
-    "rimraf": "^2.6.1",
     "shell-escape": "^0.2.0",
     "ssh-exec": "^2.0.0",
     "unique-filename": "^1.1.0",

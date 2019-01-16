@@ -6,7 +6,6 @@ import editEnv from './edit_env';
 import run from './run';
 import init from './init';
 import iosRevealProject from './ios_reveal_project';
-import restart from './restart';
 import config from './config';
 import deploy from './deploy';
 import deployPush from './deploy_push';
@@ -17,7 +16,6 @@ export {
   config,
   run,
   editEnv,
-  restart,
   buildServer,
   buildApps,
   iosRevealProject,

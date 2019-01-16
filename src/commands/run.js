@@ -19,8 +19,8 @@ export default (environment = 'develop', done, script = null) => {
   const config = readConfig();
   prompt.start();
 
-  if (!config.run || !config.scripts) {
-    throw new Error('please config `run` or `config`');
+  if (!config.run && !config.scripts) {
+    throw new Error('please config `run` or `scripts`');
   }
 
   if (script && (!config.scripts || !config.scripts[script])) {

@@ -53,5 +53,8 @@
     "ssh-exec": "^2.0.0",
     "unique-filename": "^1.1.0",
     "update-notifier": "^2.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

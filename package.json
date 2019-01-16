@@ -1,7 +1,7 @@
 {
   "name": "@panter/catladder-build",
   "description": "panter deploy tool for meteor apps",
-  "version": "1.0.0",
+  "version": "0.0.0-development",
   "author": {
     "name": "Marco Wettstein",
     "email": "maw@panter.ch",
@@ -10,7 +10,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/panter/catladder-build.git"
+    "url": "https://github.com/panter/catladder-build.git"
   },
   "bugs": "https://github.com/panter/catladder-build/issues",
   "devDependencies": {
@@ -22,14 +22,18 @@
     "eslint-plugin-import": "^2.7.0",
     "glob": "^5.0.15",
     "tape": "^4.2.2",
-    "watch": "^1.0.2"
+    "watch": "^1.0.2",
+    "semantic-release": "^15.13.3",
+    "travis-deploy-once": "^5.0.11"
   },
   "scripts": {
     "prepublish": "yarn run compile",
     "test": "babel-node --stage 1 test/harness.js test/**/*.js",
     "compile": "yarn run lint && babel src -s -d dist",
     "compile:watch": "watch 'yarn run compile' src; yalc publish",
-    "lint": "eslint src/**.js"
+    "lint": "eslint src/**.js",
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "main": "./dist/catladder.js",
   "bin": {

@@ -35,6 +35,14 @@ export default (environment, done) => {
     CORDOVA_APP_BUILD_NUMBER: getBuildNumberFromGit(),
     CORDOVA_APP_VERSION: getVersionFromTag(),
   };
+
+  // cleanup .meteor/local/cordova-build as it sometimes has problems with changing app name in mobile-config
+  const meteorLocalBuildDir = `${config.appDir}/.meteor/local/cordova-build/`;
+  if (fs.existsSync(meteorLocalBuildDir)) {
+    console.log(`\ncleaning up ${meteorLocalBuildDir} before build...`);
+    rimraf.sync(meteorLocalBuildDir);
+  }
+
   execMeteorBuild({ config, environment, additionalBuildEnv });
 
   // open ios project if exists

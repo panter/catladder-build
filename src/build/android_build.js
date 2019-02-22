@@ -49,7 +49,10 @@ export const androidInit = ({ config, environment }) => {
   }
 
   // kudos to http://stackoverflow.com/questions/3997748/how-can-i-create-a-keystore
-  const { keystorePW, keyStore, keyname, keyDName } = getKeystoreProps({ config, environment });
+  const { keystorePW, keyStore, keyname, keyDName } = getKeystoreProps({
+    config,
+    environment,
+  });
   const createKeyCommand = shellescape([
     'keytool',
     '-genkeypair',
@@ -74,7 +77,10 @@ export const androidInit = ({ config, environment }) => {
 };
 
 export const androidPrepareForStore = ({ config, environment }) => {
-  const { keystorePW, keyStore, keyname } = getKeystoreProps({ config, environment });
+  const { keystorePW, keyStore, keyname } = getKeystoreProps({
+    config,
+    environment,
+  });
   const androidBuildDir = getAndroidBuildDir({ config, environment });
   if (!fs.existsSync(androidBuildDir)) {
     throw new Error('android build dir does not exist');
@@ -82,13 +88,20 @@ export const androidPrepareForStore = ({ config, environment }) => {
   if (!fs.existsSync(keyStore)) {
     throw new Error(`please call android-init ${environment} first`);
   }
+
   const now = moment().format('YYYYMMDD-HHmm');
 
-  const inFile = `${androidBuildDir}/project/build/outputs/apk/release/android-release-unsigned.apk`;
+  const inFileOld = `${androidBuildDir}/project/build/outputs/apk/release/android-release-unsigned.apk`;
+  // file folder has changed in newer cordova versions
+  const inFileNew = `${androidBuildDir}/project/app/build/outputs/apk/release/app-release-unsigned.apk`;
+
+  const inFile = fs.existsSync(inFileNew) ? inFileNew : inFileOld;
+
   const alignFile = `${androidBuildDir}/release-unsigned-aligned.apk`;
   if (fs.existsSync(alignFile)) {
     fs.unlinkSync(alignFile);
   }
+  //
   const zipAlignCommand = shellescape([
     getAndroidBuildTool(config, 'zipalign'),
     4,
@@ -118,7 +131,10 @@ export const androidPrepareForStore = ({ config, environment }) => {
     outfile,
     alignFile,
   ]);
-  exec(signCommand, { input: `${keystorePW}\n${keystorePW}`, stdio: ['pipe', 1, 2] });
+  exec(signCommand, {
+    input: `${keystorePW}\n${keystorePW}`,
+    stdio: ['pipe', 1, 2],
+  });
 
   return outfile;
 };

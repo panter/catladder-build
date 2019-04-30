@@ -30,6 +30,8 @@ Check the docu [here](CONTRIBUTING.md).
 - if you plan to build android apps, make sure that you have android build tools installed (min version 25)
 - only tested on OS X atm.
 - ** make sure that your pass is working! **
+- ANDROID_HOME must be set
+- Android sdk "27.0.3" must be installed (build tools needed)
 
 ### Initialize new project & setup environments
 

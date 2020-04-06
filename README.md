@@ -27,7 +27,7 @@ Check the docu [here](CONTRIBUTING.md).
 ### Preconditions:
 
 - Server should be set up for current meteor apps (has node installed (version 4) and mongodb with oplog enabled).
-- if you plan to build android apps, make sure that you have android build tools installed (min version 25)
+- if you plan to build android apps, make sure that you have android build tools installed (min version 25, max 27.0.3) and ANDROID_HOME is set.
 - only tested on OS X atm.
 - ** make sure that your pass is working! **
 

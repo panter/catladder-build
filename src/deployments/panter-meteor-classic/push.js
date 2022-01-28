@@ -1,11 +1,11 @@
-import remoteExec from 'ssh-exec';
+import remoteExec from "ssh-exec";
 
-import { getBuildDir } from '../../configs/directories';
-import { getSshConfig, readConfig } from '../../utils/config_utils';
-import actionTitle from '../../ui/action_title';
-import exec from '../../utils/exec';
+import { getBuildDir } from "../../configs/directories";
+import { getSshConfig, readConfig } from "../../utils/config_utils";
+import actionTitle from "../../ui/action_title";
+import exec from "../../utils/exec";
 
-const CONFIGFILE = '.catladder.yaml';
+const CONFIGFILE = ".catladder-build.yaml";
 
 export default (environment, done) => {
   const config = readConfig();
@@ -14,7 +14,9 @@ export default (environment, done) => {
   const sshConfig = getSshConfig(CONFIGFILE, environment);
   actionTitle(`uploading server bundle to ${environment}`);
   const buildDir = getBuildDir({ config, environment });
-  exec(`scp ${buildDir}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, { stdio: 'inherit' });
+  exec(`scp ${buildDir}/app.tar.gz ${sshConfig.user}@${sshConfig.host}:`, {
+    stdio: "inherit",
+  });
   remoteExec(
     `
       rm -rf ~/app/last
@@ -27,6 +29,6 @@ export default (environment, done) => {
       popd
     `,
     sshConfig,
-    done,
+    done
   ).pipe(process.stdout);
 };

@@ -1,18 +1,16 @@
-import prompt from 'prompt';
+import prompt from "prompt";
 
-import fs from 'fs';
-import path from 'path';
+import fs from "fs";
+import path from "path";
 
-import { initSchema } from '../configs/prompt_schemas';
-import { readConfig, writeConfig } from '../utils/config_utils';
+import { initSchema } from "../configs/prompt_schemas";
+import { readConfig, writeConfig } from "../utils/config_utils";
 
-const CONFIGFILE = '.catladder.yaml';
+const CONFIGFILE = ".catladder-build.yaml";
 export default (__, done) => {
   const configOld = (fs.existsSync(CONFIGFILE) && readConfig()) || {};
   prompt.start();
-  prompt.get(initSchema(configOld), (error,
-    configNew,
-  ) => {
+  prompt.get(initSchema(configOld), (error, configNew) => {
     const config = {
       ...configOld,
       ...configNew,

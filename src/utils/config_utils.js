@@ -1,9 +1,9 @@
-import fs from 'fs';
-import yaml from 'js-yaml';
+import fs from "fs";
+import yaml from "js-yaml";
 
-import _ from 'lodash';
+import _ from "lodash";
 
-const CONFIGFILE = '.catladder.yaml';
+const CONFIGFILE = ".catladder-build.yaml";
 
 export const writeConfig = (configFile, config) => {
   const theyaml = yaml.safeDump(config);
@@ -13,7 +13,12 @@ export const readConfig = () => yaml.safeLoad(fs.readFileSync(CONFIGFILE));
 
 export const getSshConfig = (configFile, environment) => {
   const config = readConfig();
-  return _.pick(config.environments[environment], ['host', 'user', 'password', 'key']);
+  return _.pick(config.environments[environment], [
+    "host",
+    "user",
+    "password",
+    "key",
+  ]);
 };
 
 const getSanitziedValue = (value) => {
@@ -23,21 +28,21 @@ const getSanitziedValue = (value) => {
   return value;
 };
 
-const getKeyValueArraySanitized = envVars =>
-  _.keys(envVars).map(key => ({
+const getKeyValueArraySanitized = (envVars) =>
+  _.keys(envVars).map((key) => ({
     key,
     value: getSanitziedValue(envVars[key]),
   }));
 
-export const getEnvCommandString = envVars =>
+export const getEnvCommandString = (envVars) =>
   getKeyValueArraySanitized(envVars)
     .map(({ key, value }) => `${key}='${value}'`)
-    .join(' ');
+    .join(" ");
 export const createEnvSh = ({ environment, version }, envVars) => {
   // build is excluded, that is only used while building
-  const body = getKeyValueArraySanitized(_.omit(envVars, ['build']))
+  const body = getKeyValueArraySanitized(_.omit(envVars, ["build"]))
     .map(({ key, value }) => `export ${key}='${value}'`)
-    .join('\n');
+    .join("\n");
   const envHeader = `
 # autocreated with PANTER CATLADDER 🐱 🔧 v${version}
 # environment: ${environment}
